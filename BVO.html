@@ -7,16 +7,6 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;font-family:'Segoe UI',Tahoma,Arial,sans-serif;}
 html,body{width:100%;height:100%;overflow:hidden;background:#070715;color:#fff;}
-/* حاوية الدوران — تُملأ الشاشة عادةً */
-#rotwrap{position:absolute;inset:0;}
-/* الوضع الأفقي القسري للجوال/الآيباد عند الإمساك بالجهاز عمودياً:
-   نُدوّر الحاوية 90° فتصبح أبعادها: العرض=ارتفاع الشاشة، الارتفاع=عرض الشاشة */
-body.force-landscape #rotwrap{
-  position:fixed;top:0;left:0;
-  width:100vh;height:100vw;
-  transform-origin:top left;
-  transform:translateX(100vw) rotate(90deg);
-}
 .screen{position:absolute;inset:0;display:none;flex-direction:column;}
 .screen.active{display:flex;}
 .hex{clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;transition:filter .15s,transform .15s;flex-shrink:0;}
@@ -196,21 +186,6 @@ body.force-landscape #rotwrap{
 /* BOARD */
 .board-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
 
-/* ═══ تحسينات الجوال/الآيباد في الوضع الأفقي: تصغير الأشرطة لإفساح مساحة أكبر للوح ═══ */
-body.force-landscape .gtop{padding:2px 8px;}
-body.force-landscape .gtitle{font-size:11px;}
-body.force-landscape .gtimer{font-size:9px;padding:2px 5px;}
-body.force-landscape .grestart{padding:2px 7px;font-size:9px;}
-body.force-landscape .pstrip{padding:2px 8px;gap:4px;}
-body.force-landscape .pcrd{padding:2px 6px;min-width:46px;}
-body.force-landscape .pcrd .pe{font-size:11px;}
-body.force-landscape .pcrd .pm{font-size:9px;}
-body.force-landscape .pcrd .pos,body.force-landscape .pcrd .pn,body.force-landscape .pcrd .pwc,body.force-landscape .pcrd .ph{font-size:7px;}
-body.force-landscape .bpanel{min-height:0;padding:3px 8px 5px;}
-body.force-landscape .bpanel-top{margin-bottom:2px;}
-body.force-landscape .turn-lbl{font-size:9px;}
-body.force-landscape .crd{width:48px;min-height:66px;}
-body.force-landscape .crd .cval{font-size:18px;}
 /* BOTTOM */
 .bpanel{flex-shrink:0;background:rgba(0,0,0,.55);padding:8px 10px 10px;min-height:126px;}
 .bpanel-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;}
@@ -297,7 +272,6 @@ body.force-landscape .crd .cval{font-size:18px;}
 </style>
 </head>
 <body>
-<div id="rotwrap">
 
 <!-- LOGIN -->
 <div id="s-login" class="screen active">
@@ -671,42 +645,7 @@ body.force-landscape .crd .cval{font-size:18px;}
   </div>
 </div>
 
-</div><!-- /rotwrap -->
-
 <script>
-/* ═══════════════════════════════════════════════════════
-   وضع أفقي + ملء الشاشة — للجوال والآيباد فقط (لا يؤثر على سطح المكتب)
-═══════════════════════════════════════════════════════ */
-window.IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
-(function(){
-  // كشف الأجهزة اللمسية (جوال/آيباد)
-  const isTouch = window.IS_TOUCH;
-  if(!isTouch) return; // سطح المكتب: لا تغيير
-  function applyOrient(){
-    // إن كان الجهاز ممسوكاً عمودياً (الارتفاع > العرض) ندوّر المحتوى ليصبح أفقياً
-    const portrait = window.innerHeight > window.innerWidth;
-    document.body.classList.toggle('force-landscape', portrait);
-    // أعد رسم اللوح ليتكيّف الحجم مع المساحة الجديدة
-    try{ if(typeof renderBoard==='function' && document.getElementById('game-board')) renderBoard(); }catch(e){}
-  }
-  window.addEventListener('resize',applyOrient);
-  window.addEventListener('orientationchange',()=>setTimeout(applyOrient,200));
-  document.addEventListener('DOMContentLoaded',applyOrient);
-  applyOrient();
-  // محاولة ملء الشاشة عند أول لمسة (متطلّب المتصفحات)
-  function goFull(){
-    const el=document.documentElement;
-    const rq=el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
-    if(rq){try{rq.call(el);}catch(e){}}
-    // محاولة قفل الاتجاه أفقياً إن كان مدعوماً
-    try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); }catch(e){}
-    window.removeEventListener('touchend',goFull);
-    window.removeEventListener('click',goFull);
-  }
-  window.addEventListener('touchend',goFull,{once:false});
-  window.addEventListener('click',goFull,{once:false});
-})();
-
 /* ═══════════════════════════════════
    NAV
 ═══════════════════════════════════ */
@@ -849,7 +788,7 @@ function refreshTop(){
 }
 function toast(msg){
   let t=document.getElementById('bvo-toast');
-  if(!t){t=document.createElement('div');t.id='bvo-toast';t.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#150c30;border:2px solid #7c3aed;color:#fff;padding:15px 24px;border-radius:15px;font-size:15px;font-weight:800;z-index:99999;text-align:center;box-shadow:0 10px 36px rgba(0,0,0,.7);max-width:82vw;line-height:1.5;font-family:inherit;';(document.getElementById('rotwrap')||document.body).appendChild(t);}
+  if(!t){t=document.createElement('div');t.id='bvo-toast';t.style.cssText='position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:#150c30;border:2px solid #7c3aed;color:#fff;padding:15px 24px;border-radius:15px;font-size:15px;font-weight:800;z-index:99999;text-align:center;box-shadow:0 10px 36px rgba(0,0,0,.7);max-width:82vw;line-height:1.5;font-family:inherit;';document.body.appendChild(t);}
   t.textContent=msg;t.style.display='block';clearTimeout(t._to);t._to=setTimeout(()=>{t.style.display='none';},2000);
 }
 
@@ -2029,9 +1968,7 @@ function boardDecor(cx,cy,r,T){
 function boardImage(){return null;}
 function renderBoard(){
   const wrap=document.getElementById('board-wrap');
-  // الجوال/الآيباد: لوح أكبر يملأ المساحة | سطح المكتب: كما هو (0.92)
-  const fillRatio=window.IS_TOUCH?1.0:0.92;
-  const sz=Math.min(wrap.clientWidth||400,wrap.clientHeight||400)*fillRatio;
+  const sz=Math.min(wrap.clientWidth||400,wrap.clientHeight||400)*0.92;
   // r: نصف قطر دائرة الخانات. الزخرفة الخارجية تصل r*1.5، لذا نُبقي هامشاً
   const cx=sz/2,cy=sz/2,r=sz*.315,R=sz*.050;
   const svg=document.getElementById('game-board');
