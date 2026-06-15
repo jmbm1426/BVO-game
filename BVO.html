@@ -629,12 +629,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
       </svg>
       <div class="mc-txt"><span class="mc-t">التحديات</span><span class="mc-s">يومية · أسبوعية · جوائز</span></div>
     </div>
-    <div class="mcard mc-lobby" onclick="openProfile()">
+    <div class="mcard mc-lobby" onclick="openFriends()">
       <svg viewBox="0 0 40 40">
-        <circle cx="20" cy="14" r="7" fill="#86c2ff"/>
-        <path d="M7 35 a13 13 0 0 1 26 0 Z" fill="#86c2ff"/>
+        <circle cx="14" cy="15" r="5.5" fill="#7ff0e2"/>
+        <circle cx="27" cy="15" r="5.5" fill="#7ff0e2"/>
+        <path d="M3 34 a11 11 0 0 1 22 0 Z" fill="#7ff0e2"/>
+        <path d="M16 34 a11 11 0 0 1 22 0 Z" fill="#54cabb"/>
       </svg>
-      <div class="mc-txt"><span class="mc-t">ملفي الشخصي</span><span class="mc-s">المستوى والإحصائيات</span></div>
+      <div class="mc-txt"><span class="mc-t">الأصدقاء</span><span class="mc-s">العب مع أصحابك</span></div>
     </div>
   </div>
 </div>
@@ -673,8 +675,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
   </div>
   <div class="tabs">
     <button class="tab-btn on" id="tab-friends" onclick="frTab('friends')">👤 الأصدقاء</button>
-    <button class="tab-btn" id="tab-lobby" onclick="frTab('lobby')">🏠 اللوبي</button>
-    <button class="tab-btn" id="tab-rooms" onclick="frTab('rooms')">🔑 غرف</button>
+    <button class="tab-btn" id="tab-private" onclick="frTab('private')">🎮 مباراة خاصة</button>
   </div>
   <!-- FRIENDS LIST -->
   <div id="fr-pane-friends" style="padding:0 14px 20px;display:flex;flex-direction:column;gap:8px;">
@@ -690,16 +691,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
     <div style="font-size:12px;color:#888;text-align:center;margin-top:6px">الأصدقاء معك في اللوبي:</div>
     <div id="lb-list"></div>
   </div>
-  <!-- ROOMS -->
-  <div id="fr-pane-rooms" style="display:none;padding:14px;display:flex;flex-direction:column;gap:12px;align-items:center;">
-    <button class="lbtn btn-email" onclick="createRoom()">➕ إنشاء غرفة برمز</button>
-    <button class="lbtn btn-guest" onclick="goTo('s-join-room')">🔑 دخول غرفة برمز</button>
+  <!-- PRIVATE MATCH -->
+  <div id="fr-pane-private" style="display:none;padding:14px;flex-direction:column;gap:12px;align-items:center;">
+    <button class="lbtn btn-email" onclick="openPrivateStages()">➕ إنشاء مباراة خاصة</button>
+    <button class="lbtn btn-guest" onclick="goTo('s-join-room')">🔑 دخول بكود مباراة</button>
+    <div style="color:#888;font-size:12px;text-align:center;max-width:300px;line-height:1.6">المباراة الخاصة بينك وبين أصدقائك فقط — اختر مرحلة من الطور الكلاسيكي، ويصلك كود تُرسله لهم.</div>
   </div>
 </div>
 
 <!-- CREATE ROOM -->
 <div id="s-create-room" class="screen sc-center">
-  <div class="setup-title">➕ غرفتك جاهزة</div>
+  <div class="setup-title">➕ مباراتك الخاصة جاهزة</div>
+  <div id="room-stage" style="color:#7ff0e2;font-size:13px;font-weight:800;text-align:center;min-height:18px"></div>
   <div class="setup-label" style="text-align:center">شارك هذا الرمز مع أصدقائك ليدخلوا</div>
   <div class="room-code-box"><span id="room-code">-----</span></div>
   <button class="lbtn btn-email" id="copy-btn" onclick="copyRoomCode()">📋 نسخ الرمز</button>
@@ -715,6 +718,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
   <button class="lbtn btn-email" onclick="joinRoom()">🚪 دخول</button>
   <div id="join-msg" style="color:#a78bfa;font-size:13px;text-align:center;white-space:pre-line;min-height:20px;max-width:290px"></div>
   <button class="sm-back" onclick="openFriends()">← رجوع</button>
+</div>
+
+<!-- PRIVATE MATCH — STAGE PICKER -->
+<div id="s-private-stage" class="screen">
+  <div class="cups-head">
+    <button class="cups-back" onclick="openFriends()">←</button>
+    <div class="cups-title" style="color:#7ff0e2">🎮 اختر مرحلة المباراة الخاصة</div>
+    <div style="width:40px"></div>
+  </div>
+  <div class="tiers-scroll" id="private-stage-scroll"></div>
 </div>
 
 <!-- CUSTOM MODE SETUP -->
@@ -2007,12 +2020,11 @@ function sessionJoinPlay(){
 }
 /* تبويبات صفحة الأصدقاء */
 function frTab(t){
-  ['friends','lobby','rooms'].forEach(k=>{
+  ['friends','private'].forEach(k=>{
     document.getElementById('tab-'+k).classList.toggle('on',k===t);
     document.getElementById('fr-pane-'+k).style.display=(k===t)?'flex':'none';
   });
   if(t==='friends')renderFriends();
-  if(t==='lobby')renderLobby();
 }
 function renderFriends(){
   const box=document.getElementById('fr-list');box.innerHTML='';
@@ -2417,6 +2429,28 @@ function playClassic(i){
   if(PLAYER.coins<c.ticket){toast('🪙 رصيدك من BVOcoin غير كافٍ\nالتذكرة: '+c.ticket.toLocaleString());return;}
   PLAYER.coins-=c.ticket;savePlayer();refreshTop();
   startClassicGame(i);
+}
+
+/* ═══ المباراة الخاصة (مع الأصدقاء) ═══ */
+let PRIVATE_STAGE=-1;
+function openPrivateStages(){renderPrivateStages();goTo('s-private-stage');}
+function renderPrivateStages(){
+  const box=document.getElementById('private-stage-scroll');if(!box)return;box.innerHTML='';
+  CLASSIC.forEach((c,i)=>{
+    const d=document.createElement('div');d.className='tier';
+    d.style.background=CLASS_BG[i%CLASS_BG.length];
+    d.innerHTML=`<div class="tier-emblem e-cls"><span>🎴</span></div>
+      <div class="tier-rule">⚖️ المرحلة ${i+1}: ${c.rule}</div>
+      <button class="tier-play" onclick="createPrivateMatch(${i})">اختر هذه المرحلة</button>`;
+    box.appendChild(d);
+  });
+}
+function createPrivateMatch(stage){
+  PRIVATE_STAGE=stage;
+  const code=makeRoomCode();
+  const rc=document.getElementById('room-code');if(rc)rc.textContent=code;
+  const rs=document.getElementById('room-stage');if(rs)rs.textContent='المرحلة '+(stage+1)+': '+CLASSIC[stage].rule;
+  goTo('s-create-room');
 }
 
 /* ═══════════════════════════════════
