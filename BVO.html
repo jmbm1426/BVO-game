@@ -263,6 +263,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
 .pick-glow{animation:pickpulse 1s ease-in-out infinite;}
 @keyframes pickpulse{0%,100%{opacity:.35;}50%{opacity:1;}}
 /* BOARD */
+.pick-hint{display:none;flex-shrink:0;margin:6px auto 2px;max-width:88%;background:linear-gradient(135deg,#2a1170,#4a1f9e);border:1.5px solid #7c3aed;color:#fff;font-size:14px;font-weight:800;text-align:center;padding:9px 16px;border-radius:14px;box-shadow:0 6px 22px rgba(124,58,237,.5);line-height:1.5;}
+.pick-hint.show{display:block;animation:pickHintIn .25s ease;}
+@keyframes pickHintIn{0%{opacity:0;transform:translateY(-8px);}100%{opacity:1;transform:translateY(0);}}
+@keyframes bvoFlyCard{0%{transform:translate(0,0) scale(1) rotate(0);opacity:1;}15%{transform:translate(calc(var(--tx)*.10),calc(var(--ty)*.10 - 30px)) scale(1.12) rotate(-5deg);opacity:1;}100%{transform:translate(var(--tx),var(--ty)) scale(.55) rotate(10deg);opacity:.16;}}
 .board-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
 
 /* BOTTOM */
@@ -1099,6 +1103,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
     <button class="grestart" onclick="openBotSetup()">↺ إعادة</button>
   </div>
   <div class="pstrip" id="pstrip"></div>
+  <div class="pick-hint" id="pick-hint"></div>
   <div class="board-wrap" id="board-wrap">
     <svg id="game-board" xmlns="http://www.w3.org/2000/svg"></svg>
 
@@ -2748,15 +2753,14 @@ function flyCardToCenter(fromEl,card,skin){
   const bw=document.getElementById('board-wrap'); if(!bw)return;
   const r=fromEl.getBoundingClientRect(), br=bw.getBoundingClientRect();
   if(!r.width)return;
-  const fly=document.createElement('div');
-  fly.className='crd '+(card.color||'');
-  fly.style.cssText='position:fixed;z-index:99990;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px;margin:0;pointer-events:none;transition:transform .42s cubic-bezier(.34,.85,.3,1),opacity .42s ease;';
-  fly.innerHTML=cardFaceHTML(card,skin);
-  document.body.appendChild(fly);
   const tx=(br.left+br.width/2)-(r.left+r.width/2);
   const ty=(br.top+br.height/2)-(r.top+r.height/2);
-  requestAnimationFrame(()=>{ fly.style.transform='translate('+tx+'px,'+ty+'px) scale(.6) rotate(7deg)'; fly.style.opacity='0.12'; });
-  setTimeout(()=>{ try{fly.remove();}catch(e){} },470);
+  const fly=document.createElement('div');
+  fly.className='crd '+(card.color||'');
+  fly.style.cssText='position:fixed;z-index:99990;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px;margin:0;pointer-events:none;--tx:'+tx+'px;--ty:'+ty+'px;box-shadow:0 10px 30px rgba(0,0,0,.6);animation:bvoFlyCard .52s cubic-bezier(.4,.85,.35,1) forwards;';
+  fly.innerHTML=cardFaceHTML(card,skin);
+  document.body.appendChild(fly);
+  setTimeout(()=>{ try{fly.remove();}catch(e){} },560);
 }
 
 /* ═══ المرحلة 1: سحب ورقة بلون مُختار ولعبها فوراً ═══ */
@@ -3056,12 +3060,15 @@ function animTo(pidx,dest,done){const from=G.players[pidx].pos;animateMulti([{pi
 ═══════════════════════════════════ */
 function pickSlotOnBoard(slotIds,hint,cb){
   G._pick={slots:new Set(slotIds),cb};
-  if(hint)toast(hint);
+  if(hint)showPickHint(hint);
   render();
 }
+function showPickHint(t){const el=document.getElementById('pick-hint');if(!el)return;el.textContent=t;el.classList.add('show');}
+function hidePickHint(){const el=document.getElementById('pick-hint');if(el)el.classList.remove('show');}
 function onSlotClick(idx){
   if(!G._pick||!G._pick.slots.has(idx))return;
   const cb=G._pick.cb;G._pick=null;
+  hidePickHint();
   render();
   cb(idx);
 }
@@ -3333,6 +3340,7 @@ function payRent(pidx,amount,creditor){
    TURN
 ═══════════════════════════════════ */
 function endTurn(){
+  if(typeof hidePickHint==='function')hidePickHint();
   G.phase='pick';G.pend=null;
   // Refill hand (لا تطبيق في المرحلة 1 — السحب يدوي كل دور)
   const pidx=G.turn,p=G.players[pidx];
