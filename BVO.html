@@ -2580,7 +2580,7 @@ function _ev(a){if(!a||a.length<2)return 0;let up=true,dn=true;for(let i=1;i<a.l
    «المملكة السوداء»: انحياز 40% لأوراق ♠/♣ السوداء.
    «الذهبية»: فرصة 30% أكبر لأوراق K/Q/J (أي لون).
    «الكلاسيكي» و«أسود-أزرق»: بلا ميزة. */
-function skinOf(pidx){return pidx===0?(PLAYER.cardSkin||'classic'):'classic';}
+function skinOf(pidx){if(NET.on)return (G.players[pidx]&&G.players[pidx].skin)||'classic';return pidx===0?(PLAYER.cardSkin||'classic'):'classic';}
 function _topup(pidx,n){
   let d=[...G.draw],di=[...G.discard],got=[];
   const skin=skinOf(pidx);
@@ -2618,6 +2618,7 @@ function trackSeq(pidx,lb){(G._sqs=G._sqs||{})[pidx]=(G._sqs[pidx]||[]).concat(V
 let G={players:[],board:[],draw:[],discard:[],turn:0,phase:'pick',pend:null,botTO:null,_hoverPath:[],_bFree:false,_bPidx:0,_sq:[],_w:0,gameStart:0,turnStart:0};
 let NET={on:false,code:null,uids:[],myPidx:0,isHost:false,authority:false,_pt:null,_over:false};
 function meIdx(){return NET.on?NET.myPidx:0;}
+function pColor(idx){if(!NET.on)return (G.players[idx]&&G.players[idx].color)||'#888';return idx===NET.myPidx?'#ffd700':'#4d9fff';}
 let GTICK=null; // مؤقت التحديث
 let TUT_GAME=false, TUT_FLAGS={}; // حالة المباراة التدريبية الموجّهة
 let RAISED_IDX=-1; // فهرس الورقة المرفوعة (نظام رفع الورقة على الجوال)
@@ -3787,7 +3788,7 @@ function buildOnlineGame(stage, uids, info){
   CLASSIC_TIER=stage; CUP_TIER=-1; TUT_GAME=false;
   const base=uids.map((uid,i)=>{
     const pi=info[uid]||{};
-    return {id:i,name:(pi.name||PNAMES[i]||('لاعب'+(i+1))),emoji:(pi.avatar||PEMOJI[i]),color:PCOLORS[i%PCOLORS.length],money:S_MONEY,walletCap:S_CAP,pos:0,laps:0,isBot:false,hand:[],isElim:false,skipNext:false,lives:START_LIVES,lvl:null};
+    return {id:i,name:(pi.name||PNAMES[i]||('لاعب'+(i+1))),emoji:(pi.avatar||PEMOJI[i]),color:PCOLORS[i%PCOLORS.length],skin:(pi.skin||'classic'),money:S_MONEY,walletCap:S_CAP,pos:0,laps:0,isBot:false,hand:[],isElim:false,skipNext:false,lives:START_LIVES,lvl:null};
   });
   const dealCount=isStage1()?0:4;
   const r=dealN(base,shuffle(buildDeck()),[],dealCount);
@@ -3827,7 +3828,7 @@ function renderCenterPile(){
     const dx=((i*29)%5-2)*5, dy=((i*53)%5-2)*5;
     const newest=i===log.length-1;
     // كل ورقة تُرسم بشكل صاحبها: البشري (by=0) بشكله المُجهَّز، والبوتات دائماً كلاسيكية
-    const sk=c.by===0?(PLAYER.cardSkin||'classic'):'classic';
+    const sk=skinOf(c.by);
     return `<div class="ccard crd ${c.color} csk-${sk}${newest?' cnew':''}" style="transform:translate(-50%,-50%) translate(${dx}px,${dy}px) rotate(${ang}deg);z-index:${i+1}">${cardFaceHTML(c,sk)}</div>`;
   }).join('');
 }
@@ -3838,7 +3839,7 @@ function renderPlayers(){
     const d=document.createElement('div');
     d.id='pcrd-'+i;
     d.className='pcrd'+(i===G.turn&&!p.isElim?' myturn':'')+(p.isElim?' elim':'');
-    if(i===G.turn&&!p.isElim){d.style.setProperty('--pc',p.color);d.style.setProperty('--pcbg',PCBG[i]||'transparent');}
+    if(i===G.turn&&!p.isElim){d.style.setProperty('--pc',pColor(i));d.style.setProperty('--pcbg',PCBG[i]||'transparent');}
     const sqName=G.board[p.pos]?.name||'--';
     const livesTag=livesMode()?`<div class="ph" style="color:#ff6b6b">❤️ ${p.lives}</div>`:'';
     d.innerHTML=`<div class="pe">${p.emoji}</div><div class="pn">${p.name}</div><div class="pm" id="pm-${i}">$${p.money.toLocaleString()}</div><div class="pos">📍 خانة ${p.pos}</div><div class="pwc">سقف $${p.walletCap.toLocaleString()}</div><div class="ph">🎴${p.hand.length} 🏠${G.board.filter(s=>s.owner===i).length}</div>${livesTag}${p.isElim?'<div class="elim-x">✖</div>':''}`;
@@ -4414,7 +4415,7 @@ function renderBoard(){
     if(!sq)return;
     const R2=p.r, st=p.t||'hex';
     const isSpec=sq.type!=='property';
-    const ownerCol=sq.owner!==null?G.players[sq.owner]?.color:null;
+    const ownerCol=sq.owner!==null?pColor(sq.owner):null;
     const herePs=G.players.filter(pl=>ePos(pl)===idx&&!pl.isElim);
     const _me=meIdx();const isHuman=G.players[_me]&&ePos(G.players[_me])===idx&&!G.players[_me].isElim;
     const inPath=G._hoverPath.includes(idx);
@@ -4423,11 +4424,11 @@ function renderBoard(){
     const baseFill=D?(p.f?p.c:'rgba(0,0,0,.4)'):(bimg?'rgba(6,8,20,0.42)':(T.slotFill||T.inn));
     const specFill=D?'rgba(255,210,80,0.3)':(bimg?'rgba(255,210,80,0.22)':(T.specFill||(T.gold+'22')));
     const fill=isDest?'#22c55e55':inPath?'#22c55e1a':isSpec?specFill:ownerCol?ownerCol+'66':baseFill;
-    const stk=isDest?'#22c55e':inPath?'#44dd77':isHuman?G.players[_me].color:ownerCol||(D?p.c:(bimg?'rgba(255,230,160,0.55)':(T.slotStroke||T.innStk)));
+    const stk=isDest?'#22c55e':inPath?'#44dd77':isHuman?pColor(_me):ownerCol||(D?p.c:(bimg?'rgba(255,230,160,0.55)':(T.slotStroke||T.innStk)));
     const stkW=isDest?3.5:inPath?2.5:isHuman?2.5:1.5;
     const pickable=G._pick&&G._pick.slots.has(idx);
     // Outer glow
-    if(isHuman)h+=shapeEl(st,p.x,p.y,R2*1.55,`fill="none" stroke="${G.players[_me].color}" stroke-width="2" opacity=".4"`);
+    if(isHuman)h+=shapeEl(st,p.x,p.y,R2*1.55,`fill="none" stroke="${pColor(_me)}" stroke-width="2" opacity=".4"`);
     if(isDest&&!isHuman)h+=shapeEl(st,p.x,p.y,R2*1.55,`fill="none" stroke="#22c55e" stroke-width="3" opacity=".75"`);
     // Main slot (بشكل الخانة المصمَّم: سداسي/دائرة/مربع/معيّن/مثلث/نجمة)
     h+=shapeEl(st,p.x,p.y,R2,`fill="${pickable?'#22ff8826':fill}" stroke="${stk}" stroke-width="${stkW}"`);
@@ -4446,7 +4447,7 @@ function renderBoard(){
     // Square number
     h+=`<text x="${p.x}" y="${p.y+R2*.62}" text-anchor="middle" font-size="${R2*.62}" fill="${isHuman?'#fff':isDest?'#22c55e':isSpec?(T.specText||'#FFD700'):(T.slotText||'#aaa')}" font-weight="bold">${idx===0?'GO':idx}</text>`;
     // Player tokens
-    herePs.forEach((pl,pi)=>{h+=`<circle cx="${p.x+(pi-herePs.length/2+.5)*R2*.75}" cy="${p.y+R2*1.22}" r="${pl.id===0?R2*.42:R2*.34}" fill="${pl.color}" stroke="${pl.id===0?'#fff':'#000'}" stroke-width="${pl.id===0?1.5:1}"/>`;});
+    herePs.forEach((pl,pi)=>{h+=`<circle cx="${p.x+(pi-herePs.length/2+.5)*R2*.75}" cy="${p.y+R2*1.22}" r="${pl.id===meIdx()?R2*.42:R2*.34}" fill="${pColor(pl.id)}" stroke="${pl.id===meIdx()?'#fff':'#000'}" stroke-width="${pl.id===meIdx()?1.5:1}"/>`;});
     // طبقة ضغط شفافة فوق الخانة القابلة للاختيار
     if(pickable)h+=shapeEl(st,p.x,p.y,R2*1.05,`fill="transparent" onclick="onSlotClick(${idx})" style="cursor:pointer"`);
   });
@@ -4766,7 +4767,7 @@ window.bvoCreateRoom = async (stage) => {
   try {
     await set(ref(db,'rooms/'+code), {
       host: MY_UID, stage: stage, status:'waiting', createdAt: Date.now(),
-      players: { [MY_UID]: { name:P.name||'لاعب', avatar:P.avatar||'🦊', id:window.BVO_MY_ID } }
+      players: { [MY_UID]: { name:P.name||'لاعب', avatar:P.avatar||'🦊', id:window.BVO_MY_ID, skin:(P.cardSkin||'classic') } }
     });
     onDisconnect(ref(db,'rooms/'+code+'/players/'+MY_UID)).remove();
     CUR_ROOM = code; bvoListenRoom(code);
@@ -4783,7 +4784,7 @@ window.bvoJoinRoom = async (code) => {
     const room = snap.val();
     if (room.status && room.status!=='waiting') return { ok:false, msg:'المباراة بدأت بالفعل' };
     const P = window.PLAYER || {};
-    await set(ref(db,'rooms/'+code+'/players/'+MY_UID), { name:P.name||'لاعب', avatar:P.avatar||'🦊', id:window.BVO_MY_ID });
+    await set(ref(db,'rooms/'+code+'/players/'+MY_UID), { name:P.name||'لاعب', avatar:P.avatar||'🦊', id:window.BVO_MY_ID, skin:(P.cardSkin||'classic') });
     onDisconnect(ref(db,'rooms/'+code+'/players/'+MY_UID)).remove();
     CUR_ROOM = code; bvoListenRoom(code);
     return { ok:true, code, stage:room.stage };
