@@ -455,26 +455,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
 <!-- LOGIN -->
 <div id="s-login" class="screen active">
   <div class="bvo-logo">BVO</div><div class="bvo-sub">Battle</div>
-  <button class="lbtn btn-google" onclick="bvoGoogleLogin()">
+  <button class="lbtn btn-google" onclick="doLogin()">
     <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
     الدخول بـ Google
   </button>
-  <button class="lbtn btn-email" onclick="bvoOpenEmail()">✉️ البريد الإلكتروني</button>
+  <button class="lbtn btn-email" onclick="doLogin()">✉️ البريد الإلكتروني</button>
   <div class="div-line">أو</div>
-  <button class="lbtn btn-guest" onclick="bvoGuestLogin()">👤 دخول كضيف</button>
-</div>
-
-<!-- ═══ نافذة الدخول بالبريد (Firebase) ═══ -->
-<div id="bvo-email-modal" style="position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:rgba(3,3,18,.88);padding:24px;">
-  <div style="width:100%;max-width:340px;background:#120a2e;border:1px solid #3b1a7a;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.6);">
-    <div id="bvo-em-title" style="text-align:center;font-size:20px;font-weight:900;color:#fff;">تسجيل الدخول بالبريد</div>
-    <input id="bvo-em-email" type="email" autocomplete="email" placeholder="البريد الإلكتروني" style="padding:12px 14px;border-radius:10px;border:1px solid #3b1a7a;background:#0a0620;color:#fff;font-family:inherit;font-size:15px;outline:none;">
-    <input id="bvo-em-pass" type="password" autocomplete="current-password" placeholder="كلمة المرور (6 أحرف على الأقل)" style="padding:12px 14px;border-radius:10px;border:1px solid #3b1a7a;background:#0a0620;color:#fff;font-family:inherit;font-size:15px;outline:none;">
-    <div id="bvo-em-msg" style="min-height:18px;font-size:13px;color:#ff6b6b;text-align:center;"></div>
-    <button class="lbtn btn-email" id="bvo-em-submit" onclick="bvoEmailSubmit()" style="width:100%;">دخول</button>
-    <div id="bvo-em-toggle" onclick="bvoToggleEmailMode()" style="text-align:center;font-size:13px;color:#a78bfa;cursor:pointer;">ليس لديك حساب؟ أنشئ حساباً</div>
-    <button class="lbtn btn-guest" onclick="bvoCloseEmail()" style="width:100%;">إلغاء</button>
-  </div>
+  <button class="lbtn btn-guest" onclick="doLogin()">👤 دخول كضيف</button>
 </div>
 
 <!-- MAIN -->
@@ -983,7 +970,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
       <div class="pf-stat"><div class="pf-sv" id="pf-coins">0</div><div class="pf-sl">🪙 عملات BVO</div></div>
     </div>
     <button class="lbtn btn-email" style="max-width:330px" onclick="editName()">✏️ تغيير الاسم</button>
-    <button class="lbtn btn-guest" style="max-width:330px" onclick="bvoLogout()">🚪 تسجيل الخروج</button>
   </div>
 </div>
 
@@ -1529,7 +1515,7 @@ function buySkin(id){
   savePlayer();applySkin();refreshTop();renderStore();
   toast('🎉 اشتريت «'+sk.name+'» وتم تجهيزها!');
 }
-function savePlayer(){if(window.BVO_IS_GUEST)return;try{localStorage.setItem('bvo_player',JSON.stringify(PLAYER));}catch(e){}}
+function savePlayer(){try{localStorage.setItem('bvo_player',JSON.stringify(PLAYER));}catch(e){}}
 
 /* ═══════════════════════════════════
    البروفايل + الأصدقاء + اللوبي
@@ -4425,114 +4411,6 @@ function tutMarkDone(){try{localStorage.setItem('bvo_tut_done','1');}catch(e){}}
    INIT — تحميل المحفظة + التحديات + روابط الجلسات
 ═══════════════════════════════════ */
 loadPlayer();refreshTop();loadCh();parseSessionHash();
-</script>
-<!-- ════════════════════════════════════════════════
-     Firebase Authentication — نظام تسجيل الدخول
-     مشروع: bvo-game
-════════════════════════════════════════════════ -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously,
-  createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  onAuthStateChanged, signOut
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBLRkFztPzpyPAPnApn04GMbo-qALE2eOw",
-  authDomain: "bvo-game.firebaseapp.com",
-  projectId: "bvo-game",
-  storageBucket: "bvo-game.firebasestorage.app",
-  messagingSenderId: "891864750758",
-  appId: "1:891864750758:web:df8125569108305d487267"
-};
-
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-auth.languageCode = "ar";
-const googleProvider = new GoogleAuthProvider();
-
-let emailMode = "login"; // login | signup
-
-/* ===== أزرار الدخول ===== */
-window.bvoGoogleLogin = async () => {
-  try { await signInWithPopup(auth, googleProvider); }
-  catch (e) { alert(bvoErr(e.code)); }
-};
-window.bvoGuestLogin = async () => {
-  try { await signInAnonymously(auth); }
-  catch (e) { alert(bvoErr(e.code)); }
-};
-
-/* ===== نافذة البريد ===== */
-window.bvoOpenEmail = () => {
-  emailMode = "login"; bvoSyncEmailUI();
-  document.getElementById("bvo-email-modal").style.display = "flex";
-};
-window.bvoCloseEmail = () => {
-  document.getElementById("bvo-email-modal").style.display = "none";
-  document.getElementById("bvo-em-msg").textContent = "";
-};
-window.bvoToggleEmailMode = () => {
-  emailMode = (emailMode === "login") ? "signup" : "login";
-  bvoSyncEmailUI();
-};
-function bvoSyncEmailUI() {
-  const isLogin = (emailMode === "login");
-  document.getElementById("bvo-em-title").textContent  = isLogin ? "تسجيل الدخول بالبريد" : "إنشاء حساب جديد";
-  document.getElementById("bvo-em-submit").textContent = isLogin ? "دخول" : "إنشاء حساب";
-  document.getElementById("bvo-em-toggle").textContent = isLogin ? "ليس لديك حساب؟ أنشئ حساباً" : "لديك حساب؟ سجّل الدخول";
-  document.getElementById("bvo-em-msg").textContent = "";
-}
-window.bvoEmailSubmit = async () => {
-  const email = document.getElementById("bvo-em-email").value.trim();
-  const pass  = document.getElementById("bvo-em-pass").value;
-  const msg   = document.getElementById("bvo-em-msg");
-  if (!email || !pass) { msg.textContent = "أدخل البريد وكلمة المرور."; return; }
-  if (pass.length < 6) { msg.textContent = "كلمة المرور 6 أحرف على الأقل."; return; }
-  msg.style.color = "#a78bfa"; msg.textContent = "...جارٍ";
-  try {
-    if (emailMode === "signup") await createUserWithEmailAndPassword(auth, email, pass);
-    else                         await signInWithEmailAndPassword(auth, email, pass);
-    window.bvoCloseEmail();
-  } catch (e) { msg.style.color = "#ff6b6b"; msg.textContent = bvoErr(e.code); }
-};
-
-/* ===== تسجيل الخروج ===== */
-window.bvoLogout = async () => { try { await signOut(auth); } catch (e) {} location.reload(); };
-
-/* ===== مراقبة حالة الدخول (أهم جزء) ===== */
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    window.BVO_IS_GUEST = !!user.isAnonymous;
-    window.BVO_USER = { uid: user.uid, name: user.displayName || "", email: user.email || "", guest: !!user.isAnonymous };
-    // ادخل اللعبة بإعادة استخدام منطق اللعبة الأصلي
-    if (typeof window.doLogin === "function") window.doLogin();
-    else if (typeof window.goTo === "function") window.goTo("s-main");
-  } else {
-    window.BVO_IS_GUEST = false;
-    window.BVO_USER = null;
-    if (typeof window.goTo === "function") window.goTo("s-login");
-  }
-});
-
-/* ===== ترجمة الأخطاء للعربية ===== */
-function bvoErr(code) {
-  const m = {
-    "auth/invalid-email": "البريد الإلكتروني غير صحيح.",
-    "auth/email-already-in-use": "هذا البريد مسجّل مسبقاً — سجّل الدخول.",
-    "auth/weak-password": "كلمة المرور ضعيفة (6 أحرف على الأقل).",
-    "auth/user-not-found": "لا يوجد حساب بهذا البريد.",
-    "auth/wrong-password": "كلمة المرور غير صحيحة.",
-    "auth/invalid-credential": "البريد أو كلمة المرور غير صحيحة.",
-    "auth/popup-closed-by-user": "أُغلقت نافذة Google قبل إكمال الدخول.",
-    "auth/popup-blocked": "المتصفح حظر النافذة المنبثقة — اسمح بها وحاول مجدداً.",
-    "auth/network-request-failed": "تحقّق من اتصالك بالإنترنت.",
-    "auth/too-many-requests": "محاولات كثيرة — انتظر قليلاً ثم حاول.",
-    "auth/operation-not-allowed": "طريقة الدخول هذه غير مفعّلة في Firebase."
-  };
-  return m[code] || ("حدث خطأ: " + code);
-}
 </script>
 </body>
 </html>
