@@ -266,12 +266,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
 .board-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
 
 /* BOTTOM */
-.bpanel{flex-shrink:0;background:rgba(0,0,0,.55);padding:8px 10px 10px;min-height:126px;}
+.bpanel{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(6,6,18,.88),rgba(6,6,18,.30) 55%,transparent);padding:6px 10px 8px;pointer-events:none;z-index:30;}
 .bpanel-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;}
 .turn-lbl{font-size:11px;color:#888;flex:1;}
-.build-btn{background:linear-gradient(135deg,#ffd700,#ff8800);color:#000;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+.build-btn{background:linear-gradient(135deg,#ffd700,#ff8800);color:#000;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;pointer-events:auto;}
 .hand-row{display:flex;gap:6px;overflow-x:auto;justify-content:center;padding-bottom:2px;}
-.crd{flex:0 0 auto;width:60px;min-height:86px;border:2px solid #555;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .15s;font-family:inherit;}
+.crd{flex:0 0 auto;width:60px;min-height:86px;border:2px solid #555;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .15s;font-family:inherit;pointer-events:auto;}
 .crd.red{background:linear-gradient(160deg,#4a0000,#cc2222);border-color:#ff6666;}
 .crd.black{background:linear-gradient(160deg,#111,#2a2a2a);border-color:#444;}
 .crd:hover{transform:translateY(-6px);}
@@ -2737,9 +2737,26 @@ function humanPlay(idx){
   if(cp.isBot||G.phase!=='pick'||cp.isElim||G._animating||G._pick)return;
   const card=cp.hand[idx];
   if(!card)return;
+  try{flyCardToCenter(document.querySelectorAll('#hand-row .crd')[idx],card,skinOf(G.turn));}catch(e){}
   G._hoverPath=[];RAISED_IDX=-1;if(typeof hideCardInfo==='function')hideCardInfo();
   G.pend={pidx:G.turn,cardIdx:idx,card};
   resolveChoice(card,cp);
+}
+/* أنيميشن: طيران الورقة من اليد إلى وسط اللوح */
+function flyCardToCenter(fromEl,card,skin){
+  if(!fromEl)return;
+  const bw=document.getElementById('board-wrap'); if(!bw)return;
+  const r=fromEl.getBoundingClientRect(), br=bw.getBoundingClientRect();
+  if(!r.width)return;
+  const fly=document.createElement('div');
+  fly.className='crd '+(card.color||'');
+  fly.style.cssText='position:fixed;z-index:99990;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px;margin:0;pointer-events:none;transition:transform .42s cubic-bezier(.34,.85,.3,1),opacity .42s ease;';
+  fly.innerHTML=cardFaceHTML(card,skin);
+  document.body.appendChild(fly);
+  const tx=(br.left+br.width/2)-(r.left+r.width/2);
+  const ty=(br.top+br.height/2)-(r.top+r.height/2);
+  requestAnimationFrame(()=>{ fly.style.transform='translate('+tx+'px,'+ty+'px) scale(.6) rotate(7deg)'; fly.style.opacity='0.12'; });
+  setTimeout(()=>{ try{fly.remove();}catch(e){} },470);
 }
 
 /* ═══ المرحلة 1: سحب ورقة بلون مُختار ولعبها فوراً ═══ */
@@ -3759,6 +3776,8 @@ function netSerialize(){
 function netApply(str){
   let o; try{ o=JSON.parse(str); }catch(e){ return; }
   if(!o||!o.players)return;
+  const oldMoney=(G.players||[]).map(p=>p&&p.money);
+  const wasSynced=NET._synced;
   clearTimeout(G.botTO);
   G.players=o.players; G.board=o.board; G.draw=o.draw||[]; G.discard=o.discard||[];
   G.turn=o.turn||0; G.phase=o.phase||'pick'; G.pend=o.pend||null;
@@ -3766,6 +3785,11 @@ function netApply(str){
   G._lastCard=o._lastCard||null; G.gameStart=o.gameStart||G.gameStart; G.turnStart=o.turnStart||Date.now();
   G._animating=false; G._pick=null; G._hoverPath=[]; G.botTO=null;
   render();
+  // أظهر أنيميشن المال (إيجار/دفعات) لِما يتغيّر مال أي لاعب في دور الخصم
+  if(wasSynced){
+    G.players.forEach((p,i)=>{ if(p&&oldMoney[i]!=null&&p.money!==oldMoney[i]) moneyFx(i,oldMoney[i],p.money); });
+  }
+  NET._synced=true;
   const alive=G.players.filter(p=>!p.isElim);
   if(alive.length<=1 && G.players.length>1) netGameOver(alive);
 }
@@ -3798,7 +3822,7 @@ function buildOnlineGame(stage, uids, info){
 function startOnlineMatch(stage){
   const room=window.RT_ROOM||{}; const players=room.players||{}; const host=room.host;
   const uids=Object.keys(players).sort((a,b)=>(a===host?-1:(b===host?1:0)));
-  NET.on=true; NET.code=room.code; NET.uids=uids; NET._over=false;
+  NET.on=true; NET.code=room.code; NET.uids=uids; NET._over=false; NET._synced=false;
   NET.myPidx=Math.max(0,uids.indexOf(window.BVO_UID));
   NET.isHost=(window.BVO_UID===host);
   NET.authority=false;
