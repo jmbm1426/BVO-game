@@ -679,8 +679,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
   </div>
   <!-- FRIENDS LIST -->
   <div id="fr-pane-friends" style="padding:0 14px 20px;display:flex;flex-direction:column;gap:8px;">
+    <div style="background:rgba(124,58,237,.12);border:1px solid #7c3aed;border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div><div style="font-size:11px;color:#9a8ac8">معرّفك (شاركه ليضيفك أصدقاؤك)</div><div style="font-size:16px;font-weight:900;color:#fff;letter-spacing:2px" id="my-id-disp">—</div></div>
+      <button class="skin-btn" onclick="copyMyId()" style="padding:8px 14px">📋 نسخ</button>
+    </div>
     <div id="fr-list"></div>
-    <button class="lbtn btn-email" onclick="addFriendPrompt()">➕ إضافة أصدقاء (بالـ ID)</button>
+    <button class="lbtn btn-email" onclick="addFriendPrompt()">➕ إضافة صديق (بالـ ID)</button>
   </div>
   <!-- LOBBY -->
   <div id="fr-pane-lobby" style="display:none;padding:0 14px 20px;flex-direction:column;gap:8px;">
@@ -2027,15 +2031,17 @@ function frTab(t){
   if(t==='friends')renderFriends();
 }
 function renderFriends(){
-  const box=document.getElementById('fr-list');box.innerHTML='';
-  if(!PLAYER.friends.length){
-    box.innerHTML='<div style="text-align:center;color:#888;font-size:14px;padding:24px 0">ليس لديك أصدقاء بعد 🙁</div>';
+  const md=document.getElementById('my-id-disp');if(md)md.textContent=window.BVO_MY_ID||PLAYER.id||'—';
+  const box=document.getElementById('fr-list');if(!box)return;box.innerHTML='';
+  const list=window.RT_FRIENDS||[];
+  if(!list.length){
+    box.innerHTML='<div style="text-align:center;color:#888;font-size:14px;padding:24px 0">ليس لديك أصدقاء بعد 🙁<br><span style="font-size:12px">شارك معرّفك وأضِف أصدقاءك بالـ ID</span></div>';
     return;
   }
-  PLAYER.friends.forEach(f=>{
+  list.forEach(f=>{
     const d=document.createElement('div');d.className='fr-item';
     d.innerHTML=`<div class="fr-av">${f.avatar||'🦊'}</div>
-      <div style="flex:1"><div class="fr-name">${f.name}</div><div class="fr-status ${f.online?'fr-on':'fr-off'}">${f.online?'🟢 يلعب الآن':'⚫ غير متصل'}</div></div>`;
+      <div style="flex:1"><div class="fr-name">${f.name}</div><div class="fr-status ${f.online?'fr-on':'fr-off'}">${f.online?'🟢 متصل':'⚫ غير متصل'}</div></div>`;
     box.appendChild(d);
   });
 }
@@ -2054,14 +2060,9 @@ function renderLobby(){
 function addFriendPrompt(){
   const id=prompt('أدخل معرّف (ID) صديقك:');
   if(!id||!id.trim())return;
-  const code=id.trim();
-  if(code===PLAYER.id){toast('🙂 لا يمكنك إضافة نفسك!');return;}
-  if(PLAYER.friends.some(f=>f.id===code)){toast('هذا الصديق مُضاف مسبقاً');return;}
-  // ملاحظة: بلا سيرفر حقيقي — نضيفه كصديق تجريبي
-  const av=AVATARS[Math.floor(Math.random()*AVATARS.length)];
-  PLAYER.friends.push({id:code,name:'صديق '+code.slice(0,4),avatar:av,online:Math.random()<0.5});
-  savePlayer();renderFriends();
-  toast('✅ تمت إضافة الصديق');
+  if(typeof window.bvoAddFriend!=='function'){toast('⏳ الاتصال بقاعدة البيانات لم يجهز بعد');return;}
+  toast('⏳ جارٍ الإضافة...');
+  window.bvoAddFriend(id.trim()).then(r=>{toast((r.ok?'✅ ':'⚠️ ')+r.msg);});
 }
 function refreshTop(){
   const c=document.getElementById('v-coin');if(c)c.textContent=PLAYER.coins.toLocaleString();
@@ -4471,11 +4472,15 @@ import {
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
   onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+import {
+  getDatabase, ref, set, get, update, onValue, onDisconnect
+} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBLRkFztPzpyPAPnApn04GMbo-qALE2eOw",
   authDomain: "bvo-game.firebaseapp.com",
   projectId: "bvo-game",
+  databaseURL: "https://bvo-game-default-rtdb.asia-southeast1.firebasedatabase.app",
   storageBucket: "bvo-game.firebasestorage.app",
   messagingSenderId: "891864750758",
   appId: "1:891864750758:web:df8125569108305d487267"
@@ -4483,6 +4488,7 @@ const firebaseConfig = {
 
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db   = getDatabase(app);
 auth.languageCode = "ar";
 const googleProvider = new GoogleAuthProvider();
 
@@ -4543,12 +4549,76 @@ onAuthStateChanged(auth, (user) => {
     // ادخل اللعبة بإعادة استخدام منطق اللعبة الأصلي
     if (typeof window.doLogin === "function") window.doLogin();
     else if (typeof window.goTo === "function") window.goTo("s-main");
+    bvoSetupRealtime(user);
   } else {
     window.BVO_IS_GUEST = false;
     window.BVO_USER = null;
     if (typeof window.goTo === "function") window.goTo("s-login");
   }
 });
+
+/* ═══ نظام الأصدقاء الحقيقي (Realtime Database) ═══ */
+let MY_UID = null, RT_READY = false;
+async function bvoSetupRealtime(user){
+  MY_UID = user.uid;
+  const P = window.PLAYER || {};
+  let myId;
+  try {
+    const existing = await get(ref(db, 'users/' + user.uid + '/id'));
+    if (existing.exists()) {
+      myId = existing.val();
+      if (window.PLAYER) { window.PLAYER.id = myId; if (typeof window.savePlayer === 'function') window.savePlayer(); }
+    } else { myId = P.id || user.uid.slice(0, 10); }
+  } catch(e) { myId = P.id || user.uid.slice(0, 10); }
+  window.BVO_MY_ID = myId;
+  try {
+    await update(ref(db), {
+      ['users/' + user.uid + '/id']: myId,
+      ['users/' + user.uid + '/name']: P.name || 'لاعب',
+      ['users/' + user.uid + '/avatar']: P.avatar || '🦊',
+      ['idIndex/' + myId]: user.uid
+    });
+    const onlineRef = ref(db, 'users/' + user.uid + '/online');
+    onDisconnect(onlineRef).set(false);
+    await set(onlineRef, true);
+  } catch(e) { console.warn('register failed', e); }
+  if (!RT_READY) {
+    RT_READY = true;
+    onValue(ref(db, 'friends/' + user.uid), async (snap) => {
+      const val = snap.val() || {};
+      const arr = [];
+      for (const [fuid, f] of Object.entries(val)) {
+        let online = false;
+        try { const os = await get(ref(db, 'users/' + fuid + '/online')); online = !!os.val(); } catch(e) {}
+        arr.push({ uid: fuid, id: f.id, name: f.name, avatar: f.avatar, online });
+      }
+      window.RT_FRIENDS = arr;
+      if (typeof window.renderFriends === 'function') window.renderFriends();
+    });
+  }
+  const md = document.getElementById('my-id-disp'); if (md) md.textContent = myId;
+}
+
+window.bvoAddFriend = async (code) => {
+  if (!MY_UID) return { ok: false, msg: 'انتظر لحظة حتى يجهز الاتصال' };
+  code = (code || '').trim();
+  if (!code) return { ok: false, msg: 'أدخل المعرّف' };
+  if (code === window.BVO_MY_ID) return { ok: false, msg: 'لا يمكنك إضافة نفسك 🙂' };
+  try {
+    const idx = await get(ref(db, 'idIndex/' + code));
+    if (!idx.exists()) return { ok: false, msg: 'لا يوجد لاعب بهذا المعرّف' };
+    const fuid = idx.val();
+    if (fuid === MY_UID) return { ok: false, msg: 'هذا معرّفك أنت 🙂' };
+    const us = await get(ref(db, 'users/' + fuid));
+    const u = us.val() || {};
+    const me = window.PLAYER || {};
+    await update(ref(db), {
+      ['friends/' + MY_UID + '/' + fuid]: { id: code, name: u.name || 'لاعب', avatar: u.avatar || '🦊' },
+      ['friends/' + fuid + '/' + MY_UID]: { id: window.BVO_MY_ID, name: me.name || 'لاعب', avatar: me.avatar || '🦊' }
+    });
+    return { ok: true, msg: 'تمت إضافة ' + (u.name || 'صديقك') + ' ✅' };
+  } catch(e) { return { ok: false, msg: 'تعذّر الإضافة: ' + e.message }; }
+};
 
 /* ===== ترجمة الأخطاء للعربية ===== */
 function bvoErr(code) {
