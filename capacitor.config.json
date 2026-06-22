@@ -1,0 +1,11 @@
+{
+  "appId": "com.bvo.game",
+  "appName": "BVO",
+  "webDir": "www",
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": true,
+      "providers": ["google.com"]
+    }
+  }
+}

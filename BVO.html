@@ -1020,6 +1020,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
       <div class="pf-stat"><div class="pf-sv" id="pf-coins">0</div><div class="pf-sl">🪙 عملات BVO</div></div>
     </div>
     <button class="lbtn btn-email" style="max-width:330px" onclick="editName()">✏️ تغيير الاسم</button>
+    <button class="lbtn btn-email" style="max-width:330px;background:linear-gradient(135deg,#0d9488,#14b8a6)" onclick="startTutorialGame()">🎓 إعادة شرح اللعبة (تدريب)</button>
     <button class="lbtn btn-guest" style="max-width:330px" onclick="bvoLogout()">🚪 تسجيل الخروج</button>
   </div>
 </div>
@@ -1574,7 +1575,24 @@ function buySkin(id){
   savePlayer();applySkin();refreshTop();renderStore();
   toast('🎉 اشتريت «'+sk.name+'» وتم تجهيزها!');
 }
-function savePlayer(){if(window.BVO_IS_GUEST)return;try{localStorage.setItem('bvo_player',JSON.stringify(PLAYER));}catch(e){}}
+function savePlayer(){if(window.BVO_IS_GUEST)return;try{localStorage.setItem('bvo_player',JSON.stringify(PLAYER));}catch(e){}if(typeof window.bvoSaveCloud==='function')window.bvoSaveCloud(PLAYER);}
+window.applyCloudPlayer=function(data){
+  if(!data||typeof data!=='object')return;
+  Object.keys(data).forEach(function(k){PLAYER[k]=data[k];});
+  if(!Array.isArray(PLAYER.ownedSkins))PLAYER.ownedSkins=['classic'];
+  if(!PLAYER.ownedSkins.includes('classic'))PLAYER.ownedSkins.unshift('classic');
+  if(!Array.isArray(PLAYER.friends))PLAYER.friends=[];
+  if(!PLAYER.loans||typeof PLAYER.loans!=='object')PLAYER.loans={};
+  try{localStorage.setItem('bvo_player',JSON.stringify(PLAYER));}catch(e){}
+  if(typeof refreshTop==='function')refreshTop();
+  if(typeof applySkin==='function')applySkin();
+};
+window.resetCloudPlayer=function(){
+  try{localStorage.removeItem('bvo_player');}catch(e){}
+  if(typeof loadPlayer==='function')loadPlayer();
+  if(typeof refreshTop==='function')refreshTop();
+};
+window.getPlayerData=function(){try{return JSON.parse(JSON.stringify(PLAYER));}catch(e){return null;}};
 
 /* ═══════════════════════════════════
    البروفايل + الأصدقاء + اللوبي
@@ -2258,6 +2276,7 @@ function claimLogin(){
 let AD_RUNNING=false;
 function runAd(seconds,onDone){
   if(AD_RUNNING)return;
+  if(typeof bvoGetAdMob==='function' && bvoGetAdMob() && BVO_adReady){ AD_RUNNING=true; bvoShowInterstitial(function(){ AD_RUNNING=false; if(onDone)onDone(); }); return; }
   AD_RUNNING=true;
   const ov=document.getElementById('ad-overlay');
   const cnt=document.getElementById('ad-count');
@@ -2275,21 +2294,100 @@ function runAd(seconds,onDone){
 /* إعلان بجائزة (حد أقصى 10 يومياً، 100 عملة) */
 function watchAd(){
   if((CH.ads||0)>=ADS_PER_DAY)return;
-  runAd(5,()=>{
+  const reward=()=>{
     CH.ads=(CH.ads||0)+1;saveCh();
     PLAYER.coins+=AD_REWARD;savePlayer();refreshTop();
     renderCh();
     toast('🎉 حصلت على '+AD_REWARD.toLocaleString()+' 🪙 لمشاهدة الإعلان');
-  });
+  };
+  if(typeof bvoGetAdMob==='function' && bvoGetAdMob() && BVO_adReady){ bvoShowRewarded(reward); return; }
+  runAd(5,reward);
 }
 /* إعلان بيني داخل اللعب — بعد كل جلستين، أو بعد جلسة واحدة استغرقت أكثر من 10 دقائق */
+let AD_LAST_TIME = Date.now(); // مؤقّت إعلانات الـ 10 دقائق — يبدأ مع الجلسة ويصفّر بعد كل إعلان
 function maybeInterstitial(gameMs){
-  CH.gamesSinceAd=(CH.gamesSinceAd||0)+1;
-  const longGame=gameMs>=10*60*1000; // 10 دقائق
-  if(CH.gamesSinceAd>=2||longGame){
-    CH.gamesSinceAd=0;saveCh();
-    setTimeout(()=>runAd(5,()=>{}),700); // إعلان بلا جائزة
-  } else { saveCh(); }
+  // إعلان واحد كل 7 دقائق و34 ثانية، يُعرض عند نهاية المباراة فقط — لا يرتبط بعدد المباريات ولا يظهر وسط اللعب.
+  if(Date.now() - AD_LAST_TIME >= (7*60+34)*1000){
+    AD_LAST_TIME = Date.now();
+    runAd(5,()=>{});
+  }
+}
+
+/* ═══════════════════════════════════
+   AdMob — إعلانات حقيقية (نسخة الجوال فقط)
+   على الويب يستخدم الإعلان التجريبي تلقائياً
+═══════════════════════════════════ */
+const BVO_AD_TEST = true; // ⚠️ غيّرها إلى false عند النشر النهائي على المتجر
+const BVO_AD_INTERSTITIAL = 'ca-app-pub-3297139691503804/4990078151';
+const BVO_AD_REWARDED     = 'ca-app-pub-3297139691503804/4798506465';
+let BVO_AdMob = null, BVO_adReady = false, BVO_rewardFlag = false;
+
+function bvoGetAdMob(){
+  try{
+    const C = window.Capacitor;
+    if (C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins.AdMob) return C.Plugins.AdMob;
+  }catch(e){}
+  return null;
+}
+async function bvoInitAdMob(){
+  BVO_AdMob = bvoGetAdMob();
+  if (!BVO_AdMob) return;
+  try{
+    await BVO_AdMob.initialize({});
+    try{ await BVO_AdMob.addListener('onRewardedVideoAdReward', ()=>{ BVO_rewardFlag = true; }); }catch(e){}
+    try{ await BVO_AdMob.addListener('rewarded',                ()=>{ BVO_rewardFlag = true; }); }catch(e){}
+    BVO_adReady = true;
+    bvoPreloadInterstitial();
+  }catch(e){ BVO_AdMob = null; }
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ()=>setTimeout(bvoInitAdMob, 800));
+else setTimeout(bvoInitAdMob, 800);
+
+function bvoPauseGame(){
+  try{ if(typeof stopTick==='function') stopTick(); if(typeof G!=='undefined' && G && G.botTO) clearTimeout(G.botTO); }catch(e){}
+}
+function bvoResumeGame(){
+  try{
+    const el = document.getElementById('s-bot-game');
+    if (el && el.classList.contains('active') && typeof G!=='undefined' && G && G.gameStart){
+      if(typeof startTick==='function') startTick();
+      if(G.players && G.players[G.turn] && G.players[G.turn].isBot && typeof scheduleBot==='function') scheduleBot();
+    }
+  }catch(e){}
+}
+let BVO_intLoaded = false;
+function bvoInMatch(){ const bg=document.getElementById('s-bot-game'); return !!(bg && bg.classList.contains('active')); }
+async function bvoPreloadInterstitial(){
+  if (!BVO_AdMob || !BVO_adReady) return;
+  try{ await BVO_AdMob.prepareInterstitial({ adId: BVO_AD_INTERSTITIAL, isTesting: BVO_AD_TEST }); BVO_intLoaded = true; }catch(e){ BVO_intLoaded = false; }
+}
+async function bvoShowInterstitial(onDone){
+  if (!BVO_AdMob || !BVO_adReady){ if(onDone)onDone(); return false; }
+  // حارس صارم: لا يظهر الإعلان أبداً إذا كان اللاعب داخل شاشة المباراة
+  if (bvoInMatch()){ if(onDone)onDone(); return false; }
+  try{
+    if(!BVO_intLoaded){ await BVO_AdMob.prepareInterstitial({ adId: BVO_AD_INTERSTITIAL, isTesting: BVO_AD_TEST }); }
+    // أعد الفحص بعد التحميل: لو دخل اللاعب مباراة أثناء التحميل → لا تعرض
+    if (bvoInMatch()){ BVO_intLoaded = true; if(onDone)onDone(); return false; }
+    await BVO_AdMob.showInterstitial();
+  }catch(e){}
+  BVO_intLoaded = false;
+  bvoPreloadInterstitial();
+  if(onDone)onDone();
+  return true;
+}
+async function bvoShowRewarded(onReward){
+  if (!BVO_AdMob || !BVO_adReady){ return false; }
+  BVO_rewardFlag = false;
+  bvoPauseGame();
+  try{
+    await BVO_AdMob.prepareRewardVideoAd({ adId: BVO_AD_REWARDED, isTesting: BVO_AD_TEST });
+    const res = await BVO_AdMob.showRewardVideoAd();
+    if (res && (res.amount!==undefined || res.type!==undefined || res.rewardItem!==undefined)) BVO_rewardFlag = true;
+  }catch(e){}
+  bvoResumeGame();
+  if (BVO_rewardFlag && onReward) onReward();
+  return true;
 }
 
 /* ═══════════════════════════════════
@@ -2696,6 +2794,7 @@ function startClassicGame(i){openCustomReset();TUT_GAME=false;CLASSIC_TIER=i;CUP
 
 function startGame(){
   NET.on=false;
+  TUT_SCRIPT=false;
   clearTimeout(G.botTO);
   const gt=document.querySelector('#s-bot-game .gtitle');
   if(gt)gt.textContent=CUP_TIER>=0?('🏆 المرحلة '+(CUP_TIER+1)+' — لوح '+boardTheme().name):CLASSIC_TIER>=0?('🎴 كلاسيكي — مرحلة '+(CLASSIC_TIER+1)):customOn()?(CUSTOM.design?'🎨 مرحلة مصمَّمة':'🎛️ مرحلة مخصّصة'):'🎴 BVO — ضد البوت';
@@ -2742,6 +2841,7 @@ function humanPlay(idx){
   if(cp.isBot||G.phase!=='pick'||cp.isElim||G._animating||G._pick)return;
   const card=cp.hand[idx];
   if(!card)return;
+  if(TUT_SCRIPT){ const _al=tutAllowedPlayerIdx(); if(_al>=0&&idx!==_al){ if(typeof toast==='function')toast('👆 استعمل الورقة المضيئة'); return; } if(_al>=0){ TUT_PP++; if(TUT_PP>=TUT_PC.length)TUT_SCRIPT=false; } }
   try{flyCardToCenter(document.querySelectorAll('#hand-row .crd')[idx],card,skinOf(G.turn));}catch(e){}
   G._hoverPath=[];RAISED_IDX=-1;if(typeof hideCardInfo==='function')hideCardInfo();
   G.pend={pidx:G.turn,cardIdx:idx,card};
@@ -3437,12 +3537,13 @@ function checkWin(){
       CLASSIC_TIER=-1;
     } else { rc.style.display='none'; }
     stopTick();
+    goTo('s-bot-result');
     // نظام الإعارة + الإعلانات البينية (تُستثنى المباراة التدريبية)
     if(!TUT_GAME){
       consumeLoanAfterGame();
       maybeInterstitial(total);
     }
-    goTo('s-bot-result');return true;
+    return true;
   }
   return false;
 }
@@ -3477,7 +3578,7 @@ function execBot(){
     return;
   }
   if(!cp.hand.length){endTurn();return;}
-  const ci=botChooseCardIdx(pidx,cp.hand,botLvl(pidx));
+  const ci=TUT_SCRIPT?tutBotCardIdx(cp.hand):botChooseCardIdx(pidx,cp.hand,botLvl(pidx));
   const card=cp.hand[ci];
   G._lastCard={label:card.label,sym:card.sym,color:card.color,suit:card.suit,by:pidx};
   G._playLog=(G._playLog||[]).concat([{label:card.label,sym:card.sym,color:card.color,suit:card.suit,by:pidx}]);
@@ -3745,6 +3846,7 @@ function hideCardInfo(){document.getElementById('cardinfo').classList.remove('sh
 function tapCard(idx){
   const cp=G.players[G.turn];
   if(!cp||cp.isBot||G.phase!=='pick'||cp.isElim||G._animating||G._pick)return;
+  if(TUT_SCRIPT){ const _al=tutAllowedPlayerIdx(); if(_al>=0&&idx!==_al){ if(typeof toast==='function')toast('👆 استعمل الورقة المضيئة'); return; } }
   if(RAISED_IDX===idx){
     // ضغطة ثانية على نفس الورقة → العب
     RAISED_IDX=-1;hideCardInfo();cardHoverOff();
@@ -4528,6 +4630,7 @@ function renderHand(){
         b.onmouseenter=()=>{cardHover(i);infoTO=setTimeout(()=>showCardInfo(c),1000);};
         b.onmouseleave=()=>{cardHoverOff();if(infoTO)clearTimeout(infoTO);hideCardInfo();};
       }
+      if(TUT_SCRIPT){ const _al=tutAllowedPlayerIdx(); if(i!==_al){ b.style.opacity='0.3'; b.style.filter='grayscale(.7)'; } else { b.style.boxShadow='0 0 0 3px #ffd700, 0 0 16px rgba(255,215,0,.75)'; } }
       hr.appendChild(b);
     });
     if(TUT_GAME)tutOnMyTurn(cp); // نصيحة المدرّب عند دورك
@@ -4543,6 +4646,27 @@ function renderHand(){
    خطوات شرح (نوافذ) ثم مباراة تدريبية حقيقية ضد بوت واحد
 ═══════════════════════════════════════════════════════ */
 let TUT_I=0, TUT_ON=false;
+/* ═══ المرحلة 1: محرّك التدريب المكتوب (scripted) ═══ */
+let TUT_SCRIPT=false, TUT_PC=[], TUT_BC=[], TUT_PP=0, TUT_BP=0;
+function tutCard(label,color){
+  const STEPS={A:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,J:11,Q:12,K:0};
+  const BLK_STEPS={A:1,2:-2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,J:0,Q:12,K:0};
+  const r=color==='red'?(Math.random()<0.5?{n:'هاص',s:'♥'}:{n:'دبمن',s:'♦'}):(Math.random()<0.5?{n:'سبيت',s:'♠'}:{n:'شيريا',s:'♣'});
+  return {suit:r.n,sym:r.s,color:color,label:label,steps:color==='red'?STEPS[label]:BLK_STEPS[label]};
+}
+function tutAllowedPlayerIdx(){
+  if(!TUT_SCRIPT)return -1;
+  const req=TUT_PC[TUT_PP]; if(!req){TUT_SCRIPT=false;return -1;}
+  const cp=G.players[0]; if(!cp||!cp.hand)return -1;
+  return cp.hand.findIndex(c=>c.label===req.label&&c.color===req.color);
+}
+function tutBotCardIdx(hand){
+  const req=TUT_BC[TUT_BP];
+  let idx=req?hand.findIndex(c=>c.label===req.label&&c.color===req.color):-1;
+  if(idx<0)idx=0;
+  TUT_BP++;
+  return idx;
+}
 const TUT_STEPS=[
   {t:'🎮 أهلاً بك في BVO',x:'mid',m:'BVO لعبة لوحية استراتيجية تُلعب بأوراق اللعب 🎴\n\nتتحرّك حول اللوح، تشتري الأراضي، وتجمع المال من خصومك.\n\nالهدف: كوّن إمبراطوريتك وكن آخر لاعب يبقى في اللعبة!\n\nسنشرح لك كل شيء خطوة بخطوة 👇'},
   {t:'🎴 اللعب بالأوراق',x:'mid',m:'في يدك 4 أوراق. عند دورك تختار ورقة وتلعبها.\n\n• رقم الورقة = عدد خطوات تحرّكك.\n  مثال: ورقة 7 ← تتحرّك 7 خانات للأمام.'},
@@ -4571,11 +4695,27 @@ function startTutorial(){TUT_I=0;TUT_ON=true;goTo('s-main');showTutStep();}
 function startTutorialGame(){
   document.getElementById('tut-layer').classList.remove('show');
   TUT_ON=false;tutMarkDone();
-  // مباراة تدريبية موجّهة: بوت واحد سهل، طور عادي
   CUP_TIER=-1;CLASSIC_TIER=-1;CFG.bots=1;CFG.level='easy';CFG.levels=null;
   TUT_GAME=true;TUT_FLAGS={};
   startGame();
-  setTimeout(()=>coach('🎓 مباراة تدريبية موجّهة','سألعب معك خطوة بخطوة!\n\nسأظهر لك نصائح أثناء اللعب: متى تلعب ورقة، متى تشتري أرضاً، ومتى تبني.\n\nدورك الآن — انظر للأسفل إلى أوراقك الأربع. 👇'),500);
+  // ═══ سيناريو مكتوب (المرحلة 1) — التوزيعة الأولى ═══
+  TUT_PP=0; TUT_BP=0;
+  TUT_PC=[
+    {label:'A',color:'black',say:'دورك! استعمل الورقة المضيئة «A سوداء». فائدتها: تحرق ورقة الخصم التالي وتتخطّى دوره. (اضغط الورقة المضيئة فقط)'},
+    {label:'2',color:'black',say:'الآن استعمل «2 سوداء» — ترجعك خطوتين للوراء.'},
+    {label:'A',color:'red',say:'استعمل «A حمراء» — تختار: ترفع سقف محفظتك +750$ وتحصل على +500$.'},
+    {label:'5',color:'red',say:'استعمل «5 حمراء» — تتحرّك 5 خطوات.'}
+  ];
+  TUT_BC=[
+    {label:'5',color:'red'},{label:'Q',color:'red'},{label:'J',color:'red'},{label:'5',color:'red'}
+  ];
+  if(G&&G.players[0]&&G.players[1]){
+    G.players[0].hand=TUT_PC.map(c=>tutCard(c.label,c.color));
+    G.players[1].hand=TUT_BC.map(c=>tutCard(c.label,c.color));
+  }
+  TUT_SCRIPT=true;
+  render();
+  setTimeout(()=>coach('🎓 تدريب موجّه خطوة بخطوة','سأرشدك! في كل دور، استعمل فقط الورقة **المضيئة** — الأوراق الأخرى مقفلة مؤقتاً. 👇'),500);
 }
 /* نافذة المدرّب: عنوان + نص، تُغلق بزر «فهمت». once=مفتاح لمنع التكرار */
 function coach(title,text,once){
@@ -4587,6 +4727,7 @@ function coach(title,text,once){
 function coachClose(){document.getElementById('coach-box').classList.remove('show');}
 /* يُستدعى من renderHand عند بداية دور اللاعب البشري في المباراة التدريبية */
 function tutOnMyTurn(cp){
+  if(TUT_SCRIPT){ const req=TUT_PC[TUT_PP]; if(req&&req.say)coach('🎓 خطوة التدريب',req.say); return; }
   if(!TUT_GAME||!cp||!cp.hand||!cp.hand.length)return;
   // نصيحة أول دور: اشرح الورقة الأعلى قيمة
   if(!TUT_FLAGS.firstplay){
@@ -4631,7 +4772,7 @@ loadPlayer();refreshTop();loadCh();parseSessionHash();
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously,
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signInAnonymously,
   createUserWithEmailAndPassword, signInWithEmailAndPassword,
   onAuthStateChanged, signOut
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
@@ -4659,8 +4800,22 @@ let emailMode = "login"; // login | signup
 
 /* ===== أزرار الدخول ===== */
 window.bvoGoogleLogin = async () => {
-  try { await signInWithPopup(auth, googleProvider); }
-  catch (e) { alert(bvoErr(e.code)); }
+  const Cap = window.Capacitor;
+  const FA = Cap && Cap.Plugins && Cap.Plugins.FirebaseAuthentication;
+  if (Cap && Cap.isNativePlatform && Cap.isNativePlatform() && FA) {
+    // تطبيق الجوال: دخول Google أصلي (لا يفتح متصفّحاً خارجياً)
+    try {
+      const result = await FA.signInWithGoogle();
+      const idToken = result && result.credential && result.credential.idToken;
+      if (!idToken) { alert('تعذّر الحصول على رمز Google'); return; }
+      const cred = GoogleAuthProvider.credential(idToken);
+      await signInWithCredential(auth, cred);
+    } catch (e) { alert('تعذّر الدخول بـ Google: ' + (e && e.message ? e.message : e)); }
+  } else {
+    // الويب: نافذة منبثقة
+    try { await signInWithPopup(auth, googleProvider); }
+    catch (e) { alert(bvoErr(e.code)); }
+  }
 };
 window.bvoGuestLogin = async () => {
   try { await signInAnonymously(auth); }
@@ -4724,11 +4879,25 @@ onAuthStateChanged(auth, (user) => {
 let MY_UID = null, RT_READY = false;
 async function bvoSetupRealtime(user){
   MY_UID = user.uid;
+  window.BVO_UID = user.uid;
+  // ═══ حفظ سحابي: حمّل تقدّم هذا الحساب أولاً (كل حساب منفصل عن الآخر) ═══
+  if (!user.isAnonymous) {
+    try {
+      const psnap = await get(ref(db, 'players/' + user.uid));
+      if (psnap.exists()) {
+        if (typeof window.applyCloudPlayer === 'function') window.applyCloudPlayer(psnap.val());
+      } else {
+        if (typeof window.resetCloudPlayer === 'function') window.resetCloudPlayer();
+        const fresh = (typeof window.getPlayerData === 'function') ? window.getPlayerData() : null;
+        if (fresh) { try { await set(ref(db, 'players/' + user.uid), fresh); } catch(e) {} }
+      }
+    } catch(e) { console.warn('cloud load failed', e); }
+  } else {
+    if (typeof window.resetCloudPlayer === 'function') window.resetCloudPlayer(); // ضيف → تقدّم مؤقت
+  }
   const P = window.PLAYER || {};
-  // المعرّف الظاهر للاعب (نفسه في الملف الشخصي) هو المرجع
   const myId = (P.id && String(P.id).trim()) ? String(P.id).trim() : user.uid.slice(0, 10);
   window.BVO_MY_ID = myId;
-  window.BVO_UID = user.uid;
   try {
     await update(ref(db), {
       ['users/' + user.uid + '/id']: myId,
@@ -4756,6 +4925,14 @@ async function bvoSetupRealtime(user){
   }
   const md = document.getElementById('my-id-disp'); if (md) md.textContent = myId;
 }
+
+let BVO_SAVE_T = null;
+window.bvoSaveCloud = function(data){
+  if (!MY_UID || !data || window.BVO_IS_GUEST) return;
+  let snap; try { snap = JSON.parse(JSON.stringify(data)); } catch(e) { return; }
+  clearTimeout(BVO_SAVE_T);
+  BVO_SAVE_T = setTimeout(()=>{ try { set(ref(db, 'players/' + MY_UID), snap); } catch(e) {} }, 600);
+};
 
 window.bvoAddFriend = async (code) => {
   if (!MY_UID) return { ok: false, msg: 'انتظر لحظة حتى يجهز الاتصال' };

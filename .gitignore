@@ -1,0 +1,6 @@
+# Capacitor / build artifacts (لا تُرفع إلى GitHub — مخصّصة لبناء التطبيق محلياً)
+node_modules/
+www/
+android/
+package-lock.json
+.gradle/
