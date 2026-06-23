@@ -2483,7 +2483,13 @@ function cupRoomUpdate(players){
   var iAmIn=top4.some(function(p){ return p._uid===FB_UID; });
   if(arr.length>=4 && iAmIn && !CUP_ROOM.started){
     CUP_ROOM.started=true;
-    var st=document.getElementById('cupw-status'); if(st)st.textContent='✅ اكتملت الغرفة! (اللعب المتزامن قريباً)';
+    var st=document.getElementById('cupw-status'); if(st)st.textContent='✅ اكتملت الغرفة! تبدأ المباراة…';
+    var slots=top4.map(function(p){ return {uid:p._uid, name:p.name, avatar:p.avatar, cups:p.cups}; });
+    var tier=CUP_ROOM.tier;
+    try{ CUP_ROOM.root.child('players').off('value', CUP_ROOM.cb); }catch(e){}
+    try{ CUP_ROOM.me.onDisconnect().cancel(); CUP_ROOM.me.remove(); }catch(e){}
+    CUP_ROOM=null;
+    setTimeout(function(){ startOnlineCup(tier, slots); }, 1000);
   }
 }
 function renderCupRoom(top4, total){
@@ -2793,7 +2799,67 @@ function startBotGame(){openCustomReset();TUT_GAME=false;CUP_TIER=-1;CLASSIC_TIE
 function startCupGame(i){openCustomReset();TUT_GAME=false;CUP_TIER=i;CLASSIC_TIER=-1;CFG.bots=1;CFG.level='medium';CFG.levels=null;startGame();}
 function startClassicGame(i){openCustomReset();TUT_GAME=false;CLASSIC_TIER=i;CUP_TIER=-1;CFG.bots=3;CFG.level='medium';CFG.levels=null;startGame();}
 
+/* ═══════════════════════════════════
+   الأونلاين — مزامنة لعب الكؤوس (4 لاعبين حقيقيين)
+   إضافية بالكامل: دون أونلاين تبقى meIdx()=0 فلا يتأثّر اللعب الفردي
+═══════════════════════════════════ */
+let ONLINE=false, MY_SLOT=0, GAME_REF=null, _remoteApply=false, _gameSeq=0;
+function meIdx(){ return ONLINE?MY_SLOT:0; }
+function snapGame(){
+  return {
+    players:G.players, board:G.board, draw:G.draw, discard:G.discard,
+    turn:G.turn, phase:G.phase, pend:G.pend, gameStart:G.gameStart, turnStart:G.turnStart,
+    ws:G._ws||{}, sqs:G._sqs||{}, ncp:G._noComboP||{}, plog:G._playLog||[],
+    seq:_gameSeq, by:MY_SLOT
+  };
+}
+function pushGame(){
+  if(!ONLINE||!GAME_REF)return;
+  try{ _gameSeq++; var s=snapGame(); s.seq=_gameSeq; GAME_REF.set(JSON.parse(JSON.stringify(s))); }catch(e){ console.warn('[BVO] pushGame',e); }
+}
+function applyGame(s){
+  if(!s||typeof s!=='object')return;
+  _remoteApply=true;
+  try{
+    G.players=s.players||[]; G.board=s.board||[]; G.draw=s.draw||[]; G.discard=s.discard||[];
+    G.turn=s.turn||0; G.phase=s.phase||'pick'; G.pend=s.pend||null;
+    G.gameStart=s.gameStart||Date.now(); G.turnStart=s.turnStart||Date.now();
+    G._ws=s.ws||{}; G._sqs=s.sqs||{}; G._noComboP=s.ncp||{}; G._playLog=s.plog||[];
+    G._hoverPath=[]; G._animating=false; G._pick=null;
+    var gs=document.getElementById('s-bot-game');
+    if(gs && !gs.classList.contains('active')){ goTo('s-bot-game'); startTick(); }
+    applySkin(); render(); checkWin();
+  }catch(e){ console.warn('[BVO] applyGame',e); }
+  _remoteApply=false;
+}
+function watchGame(ref){
+  GAME_REF=ref;
+  ref.on('value', function(snap){
+    var s=snap.val(); if(!s)return;
+    if(s.seq){ _gameSeq=Math.max(_gameSeq, s.seq); }
+    if(s.by===MY_SLOT) return;
+    applyGame(s);
+  });
+}
+function buildOnlineGame(slots){
+  CFG.bots=0;
+  var base=slots.slice(0,4).map(function(p,i){ return {id:i,name:(p.name||PNAMES[i]||('لاعب'+i)),emoji:(p.avatar||PEMOJI[i]||'🦊'),color:PCOLORS[i],money:S_MONEY,walletCap:S_CAP,pos:0,laps:0,isBot:false,hand:[],isElim:false,skipNext:false,lives:START_LIVES,lvl:null}; });
+  var dealCount=isStage1()?0:4;
+  var dn=dealN(base, shuffle(buildDeck()), [], dealCount);
+  G={players:dn.players,board:buildBoard(),draw:dn.draw,discard:dn.discard,turn:0,phase:'pick',pend:null,botTO:null,_hoverPath:[],_bFree:false,_bPidx:0,_sqs:{},_ws:{},_noComboP:{},_playLog:[],gameStart:Date.now(),turnStart:Date.now()};
+  applySkin(); render(); startTick();
+}
+function startOnlineCup(tier, slots){
+  ONLINE=true; CUP_TIER=tier; CLASSIC_TIER=-1; CUSTOM=null; _gameSeq=0;
+  var mine=slots.findIndex(function(p){ return p.uid===FB_UID; });
+  MY_SLOT=mine<0?0:mine;
+  var gref=fbDB.ref('rooms/cups_'+tier+'/game');
+  goTo('s-bot-game');
+  if(MY_SLOT===0){ buildOnlineGame(slots); GAME_REF=gref; pushGame(); watchGame(gref); }
+  else { watchGame(gref); }
+}
 function startGame(){
+  ONLINE=false; // اللعب الفردي/البوت ليس أونلاين
   clearTimeout(G.botTO);
   // مباراة عادية (ليست الجولة التعليمية) → صفّر حالة الجولة وأخفِ شريحتها
   if(!SCEN){SCEN_DONE=false;const sb=document.getElementById('scen-banner');if(sb)sb.style.display='none';}
@@ -2839,6 +2905,7 @@ function startGame(){
 ═══════════════════════════════════ */
 function humanPlay(idx){
   const cp=G.players[G.turn];
+  if(ONLINE&&G.turn!==MY_SLOT){toast('⏳ ليس دورك بعد');return;}
   if(cp.isBot||G.phase!=='pick'||cp.isElim||G._animating||G._pick)return;
   const card=cp.hand[idx];
   if(!card)return;
@@ -2874,6 +2941,7 @@ function drawColorCard(color){ // color: 'red' | 'black'
 }
 function humanDraw(color){
   const cp=G.players[G.turn];
+  if(ONLINE&&G.turn!==MY_SLOT){toast('⏳ ليس دورك بعد');return;}
   if(cp.isBot||G.phase!=='pick'||cp.isElim||G._animating||G._pick)return;
   const card=drawColorCard(color);
   if(!card){endTurn();return;}
@@ -3472,7 +3540,8 @@ function endTurn(){
     }
   }
   if(SCEN)scenStepDone(); // الجولة التعليمية: تقدّم خطوة + اعرض شرح الخطوة التالية
-  render();scheduleBot();
+  render();
+  if(ONLINE){ if(!_remoteApply)pushGame(); } else { scheduleBot(); }
 }
 
 /* المرحلة 5: خصم إيجار البقاء في بداية الدور (يعيد استخدام منطق العجز/البيع/الإقصاء) */
@@ -3499,8 +3568,9 @@ function checkWin(){
   const active=G.players.filter(p=>!p.isElim);
   if(active.length<=1){
     const w=active.length===1?active[0]:G.players.reduce((a,b)=>a.money>b.money?a:b);
+    if(ONLINE&&!_remoteApply)pushGame(); // زامن الحالة النهائية مع بقية اللاعبين
     // نظام اللِفِل والانتصارات (للاعب البشري id=0)
-    const iWon=(w.id===0);
+    const iWon=(w.id===meIdx());
     const _scenWin=!!SCEN; // فوز ضمن الجولة التعليمية
     if(_scenWin){SCEN=null;SCEN_DONE=false;const _sb=document.getElementById('scen-banner');if(_sb)_sb.style.display='none';}
     if(!_scenWin){
@@ -3517,7 +3587,7 @@ function checkWin(){
     const rc=document.getElementById('res-cups');
     if(CUP_TIER>=0){
       const t=TIERS[CUP_TIER];
-      const won=w.id===0;
+      const won=w.id===meIdx();
       if(won){
         PLAYER.cups+=t.win;PLAYER.coins+=t.ticket*2;
         rc.innerHTML='<span style="color:#7dffaf">+'+t.win+' 🏆</span> &nbsp;·&nbsp; <span style="color:#ffd700">+'+(t.ticket*2).toLocaleString()+' 🪙</span>';
@@ -3531,7 +3601,7 @@ function checkWin(){
       CUP_TIER=-1;
     } else if(CLASSIC_TIER>=0){
       const c=CLASSIC[CLASSIC_TIER];
-      const won=w.id===0;
+      const won=w.id===meIdx();
       if(won){
         PLAYER.coins+=c.ticket*2;
         rc.innerHTML='<span style="color:#ffd700">+'+(c.ticket*2).toLocaleString()+' 🪙</span>';
@@ -3557,6 +3627,7 @@ function checkWin(){
    BOT AI
 ═══════════════════════════════════ */
 function scheduleBot(){
+  if(ONLINE)return; // لا بوتات في الأونلاين — لاعبون حقيقيون فقط
   const cp=G.players[G.turn];
   if(!cp||!cp.isBot||cp.isElim||G.phase!=='pick')return;
   clearTimeout(G.botTO);
@@ -3604,7 +3675,7 @@ function botPickFoe(pidx){
 }
 /* الحسود يستهدف اللاعب البشري تحديداً (حسداً)؛ غيره يستهدف الأغنى */
 function botTargetFoe(pidx,lvl){
-  if(lvl==='envious'&&G.players[0]&&!G.players[0].isElim&&G.players[0].id!==pidx)return 0;
+  if(lvl==='envious'&&G.players[meIdx()]&&!G.players[meIdx()].isElim&&G.players[meIdx()].id!==pidx)return 0;
   return botPickFoe(pidx);
 }
 /* أعلى أرض إيجاراً يملكها البوت (لإيقاع الخصوم عليها) */
@@ -4487,18 +4558,18 @@ function renderBoard(){
     const isSpec=sq.type!=='property';
     const ownerCol=sq.owner!==null?G.players[sq.owner]?.color:null;
     const herePs=G.players.filter(pl=>ePos(pl)===idx&&!pl.isElim);
-    const isHuman=G.players[0]&&ePos(G.players[0])===idx&&!G.players[0].isElim;
+    const isHuman=G.players[meIdx()]&&ePos(G.players[meIdx()])===idx&&!G.players[meIdx()].isElim;
     const inPath=G._hoverPath.includes(idx);
     const isDest=G._hoverPath.length>0&&G._hoverPath[G._hoverPath.length-1]===idx;
     // مع التصميم: لون الخانة الأساسي من اختيار المصمّم — ومع الألواح المرسومة: لون محفور من خامة اللوح نفسه
     const baseFill=D?(p.f?p.c:'rgba(0,0,0,.4)'):(bimg?'rgba(6,8,20,0.42)':(T.slotFill||T.inn));
     const specFill=D?'rgba(255,210,80,0.3)':(bimg?'rgba(255,210,80,0.22)':(T.specFill||(T.gold+'22')));
     const fill=isDest?'#22c55e55':inPath?'#22c55e1a':isSpec?specFill:ownerCol?ownerCol+'66':baseFill;
-    const stk=isDest?'#22c55e':inPath?'#44dd77':isHuman?G.players[0].color:ownerCol||(D?p.c:(bimg?'rgba(255,230,160,0.55)':(T.slotStroke||T.innStk)));
+    const stk=isDest?'#22c55e':inPath?'#44dd77':isHuman?G.players[meIdx()].color:ownerCol||(D?p.c:(bimg?'rgba(255,230,160,0.55)':(T.slotStroke||T.innStk)));
     const stkW=isDest?3.5:inPath?2.5:isHuman?2.5:1.5;
     const pickable=G._pick&&G._pick.slots.has(idx);
     // Outer glow
-    if(isHuman)h+=shapeEl(st,p.x,p.y,R2*1.55,`fill="none" stroke="${G.players[0].color}" stroke-width="2" opacity=".4"`);
+    if(isHuman)h+=shapeEl(st,p.x,p.y,R2*1.55,`fill="none" stroke="${G.players[meIdx()].color}" stroke-width="2" opacity=".4"`);
     if(isDest&&!isHuman)h+=shapeEl(st,p.x,p.y,R2*1.55,`fill="none" stroke="#22c55e" stroke-width="3" opacity=".75"`);
     // Main slot (بشكل الخانة المصمَّم: سداسي/دائرة/مربع/معيّن/مثلث/نجمة)
     h+=shapeEl(st,p.x,p.y,R2,`fill="${pickable?'#22ff8826':fill}" stroke="${stk}" stroke-width="${stkW}"`);
@@ -4532,8 +4603,8 @@ function renderBoard(){
     arr.forEach((pl,pi)=>{
       let ox=0, oy=0;
       if(arr.length>1){ const o=TOK_OFF[pi%6]; ox=o[0]*g; oy=o[1]*g; } // أكثر من شخصية → ترتيب سداسي
-      const rad=pl.id===0?R2*.42:R2*.36;
-      h+=`<circle cx="${(p.x+ox).toFixed(1)}" cy="${(p.y+oy).toFixed(1)}" r="${rad.toFixed(1)}" fill="${pl.color}" stroke="${pl.id===0?'#fff':'#000'}" stroke-width="${pl.id===0?1.6:1.1}"/>`;
+      const rad=pl.id===meIdx()?R2*.42:R2*.36;
+      h+=`<circle cx="${(p.x+ox).toFixed(1)}" cy="${(p.y+oy).toFixed(1)}" r="${rad.toFixed(1)}" fill="${pl.color}" stroke="${pl.id===meIdx()?'#fff':'#000'}" stroke-width="${pl.id===meIdx()?1.6:1.1}"/>`;
     });
   });
   svg.innerHTML=h;
@@ -4549,7 +4620,7 @@ function renderHand(){
   if(typeof hideCardInfo==='function')hideCardInfo();
   if(typeof RAISED_IDX!=='undefined')RAISED_IDX=-1;
   if(!cp||cp.isElim){lbl.textContent='انتظر...';return;}
-  const isMe=!cp.isBot&&G.turn===0;
+  const isMe=!cp.isBot&&G.turn===meIdx();
   // ليس دوري (بوت/انتظار) → تأكّد من إخفاء نافذة الفائدة
   if(!isMe||G.phase!=='pick'){if(typeof hideCardInfo==='function')hideCardInfo();}
   if(G._pick){lbl.textContent='👆 اختر خانة مضيئة على اللوحة';hr.innerHTML='<div class="no-crd">👆 اختر من اللوحة</div>';return;}
@@ -4562,7 +4633,7 @@ function renderHand(){
   if(isMe&&G.phase==='pick'){
     if(SCEN){lbl.innerHTML=`<span dir="ltr" style="unicode-bidi:isolate;font-weight:900">💰 <span style="color:#ffd24a">${cp.walletCap.toLocaleString()}</span> / <span style="color:#27c93f">${cp.money.toLocaleString()}</span></span>  ·  📍 ${cp.pos}`;}
     else{lbl.textContent=`دورك — $${cp.money.toLocaleString()} | سقف $${cp.walletCap.toLocaleString()} | 📍 ${cp.pos}`;}
-    const myP=G.board.filter(sq=>sq.type==='property'&&sq.owner===0&&sq.buildings<MAX_B);
+    const myP=G.board.filter(sq=>sq.type==='property'&&sq.owner===meIdx()&&sq.buildings<MAX_B);
     if(!SCEN&&myP.length&&cp.money>=buildCost()&&!isStage6()){bb.style.display='block';bb.textContent='🏗️ ابنِ ('+buildCost()+'$)';} // المرحلة 6: لا بناء عادي
     // المرحلة 1: زرّا سحب (أحمر/أسود) بدل عرض اليد
     if(isStage1()){
