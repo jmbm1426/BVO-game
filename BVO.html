@@ -87,6 +87,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
 .m-bot{background:linear-gradient(150deg,#2f72e0,#0a1d44);color:#dcecff;}
 .m-classic{background:linear-gradient(150deg,#e8841c,#3a1500);color:#ffe2c4;}
 .m-friends{background:linear-gradient(150deg,#11b59f,#03342d);color:#c4fff4;}
+.m-store{background:linear-gradient(150deg,#2faa4a,#0a3318);color:#d6ffd9;}
 .m-cups{background:linear-gradient(150deg,#ec57aa,#3a0a2a);color:#ffd6ed;}
 
 /* CUPS TIERS SCREEN (8BP-style) */
@@ -263,19 +264,15 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
 .pick-glow{animation:pickpulse 1s ease-in-out infinite;}
 @keyframes pickpulse{0%,100%{opacity:.35;}50%{opacity:1;}}
 /* BOARD */
-.pick-hint{display:none;flex-shrink:0;margin:6px auto 2px;max-width:88%;background:linear-gradient(135deg,#2a1170,#4a1f9e);border:1.5px solid #7c3aed;color:#fff;font-size:14px;font-weight:800;text-align:center;padding:9px 16px;border-radius:14px;box-shadow:0 6px 22px rgba(124,58,237,.5);line-height:1.5;}
-.pick-hint.show{display:block;animation:pickHintIn .25s ease;}
-@keyframes pickHintIn{0%{opacity:0;transform:translateY(-8px);}100%{opacity:1;transform:translateY(0);}}
-@keyframes bvoFlyCard{0%{transform:translate(0,0) scale(1) rotate(0);opacity:1;}15%{transform:translate(calc(var(--tx)*.10),calc(var(--ty)*.10 - 30px)) scale(1.12) rotate(-5deg);opacity:1;}100%{transform:translate(var(--tx),var(--ty)) scale(.55) rotate(10deg);opacity:.16;}}
 .board-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
 
 /* BOTTOM */
-.bpanel{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(6,6,18,.88),rgba(6,6,18,.30) 55%,transparent);padding:6px 10px 8px;pointer-events:none;z-index:30;}
+.bpanel{flex-shrink:0;background:rgba(0,0,0,.55);padding:8px 10px 10px;min-height:126px;}
 .bpanel-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;}
 .turn-lbl{font-size:11px;color:#888;flex:1;}
-.build-btn{background:linear-gradient(135deg,#ffd700,#ff8800);color:#000;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;pointer-events:auto;}
+.build-btn{background:linear-gradient(135deg,#ffd700,#ff8800);color:#000;border:none;padding:6px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
 .hand-row{display:flex;gap:6px;overflow-x:auto;justify-content:center;padding-bottom:2px;}
-.crd{flex:0 0 auto;width:60px;min-height:86px;border:2px solid #555;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .15s;font-family:inherit;pointer-events:auto;}
+.crd{flex:0 0 auto;width:60px;min-height:86px;border:2px solid #555;border-radius:12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:transform .15s;font-family:inherit;}
 .crd.red{background:linear-gradient(160deg,#4a0000,#cc2222);border-color:#ff6666;}
 .crd.black{background:linear-gradient(160deg,#111,#2a2a2a);border-color:#444;}
 .crd:hover{transform:translateY(-6px);}
@@ -452,32 +449,33 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
 .host-link-box{width:90%;max-width:340px;background:rgba(255,255,255,.05);border:2px solid #5ce0d2;border-radius:12px;color:#9fe8df;font-size:11px;padding:12px;font-family:monospace;word-break:break-all;max-height:110px;overflow-y:auto;text-align:left;direction:ltr;}
 .host-crown{font-size:54px;filter:drop-shadow(0 4px 14px rgba(255,215,0,.5));}
 .sess-pill{background:rgba(92,224,210,.12);border:2px dashed #5ce0d2;border-radius:14px;padding:13px 26px;font-size:30px;font-weight:900;letter-spacing:8px;color:#fff;text-shadow:0 0 12px #5ce0d2;}
+/* زر اللغة الصغير (رصاصي) */
+.lang-btn-sm{background:linear-gradient(150deg,#8a8f9e,#5b606e);border:1px solid rgba(210,213,224,.5);color:#f0f2f8;border-radius:10px;padding:6px 10px;font-size:12.5px;font-weight:800;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;box-shadow:0 2px 7px rgba(0,0,0,.35);transition:transform .12s,filter .12s;}
+.lang-btn-sm:active{transform:scale(.93);filter:brightness(1.12);}
+.lang-btn-top{position:absolute;top:14px;right:14px;z-index:6;}
 </style>
 </head>
 <body>
 
 <!-- LOGIN -->
 <div id="s-login" class="screen active">
+  <button class="lang-btn-sm lang-btn-top" onclick="openLangPicker()"><span id="login-lang-flag">🌐</span></button>
   <div class="bvo-logo">BVO</div><div class="bvo-sub">Battle</div>
-  <button class="lbtn btn-google" onclick="bvoGoogleLogin()">
+  <button class="lbtn btn-google" onclick="doLogin()">
     <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.7-.4-3.9z"/></svg>
-    الدخول بـ Google
+    <span data-i18n="login_google">الدخول بـ Google</span>
   </button>
-  <button class="lbtn btn-email" onclick="bvoOpenEmail()">✉️ البريد الإلكتروني</button>
-  <div class="div-line">أو</div>
-  <button class="lbtn btn-guest" onclick="bvoGuestLogin()">👤 دخول كضيف</button>
+  <button class="lbtn btn-email" onclick="doLogin()">✉️ <span data-i18n="login_email">البريد الإلكتروني</span></button>
+  <div class="div-line" data-i18n="or">أو</div>
+  <button class="lbtn btn-guest" onclick="doLogin()">👤 <span data-i18n="login_guest">دخول كضيف</span></button>
 </div>
 
-<!-- ═══ نافذة الدخول بالبريد (Firebase) ═══ -->
-<div id="bvo-email-modal" style="position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;background:rgba(3,3,18,.88);padding:24px;">
-  <div style="width:100%;max-width:340px;background:#120a2e;border:1px solid #3b1a7a;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.6);">
-    <div id="bvo-em-title" style="text-align:center;font-size:20px;font-weight:900;color:#fff;">تسجيل الدخول بالبريد</div>
-    <input id="bvo-em-email" type="email" autocomplete="email" placeholder="البريد الإلكتروني" style="padding:12px 14px;border-radius:10px;border:1px solid #3b1a7a;background:#0a0620;color:#fff;font-family:inherit;font-size:15px;outline:none;">
-    <input id="bvo-em-pass" type="password" autocomplete="current-password" placeholder="كلمة المرور (6 أحرف على الأقل)" style="padding:12px 14px;border-radius:10px;border:1px solid #3b1a7a;background:#0a0620;color:#fff;font-family:inherit;font-size:15px;outline:none;">
-    <div id="bvo-em-msg" style="min-height:18px;font-size:13px;color:#ff6b6b;text-align:center;"></div>
-    <button class="lbtn btn-email" id="bvo-em-submit" onclick="bvoEmailSubmit()" style="width:100%;">دخول</button>
-    <div id="bvo-em-toggle" onclick="bvoToggleEmailMode()" style="text-align:center;font-size:13px;color:#a78bfa;cursor:pointer;">ليس لديك حساب؟ أنشئ حساباً</div>
-    <button class="lbtn btn-guest" onclick="bvoCloseEmail()" style="width:100%;">إلغاء</button>
+<!-- LANGUAGE PICKER -->
+<div id="lang-overlay" style="position:fixed;inset:0;background:rgba(2,2,12,.82);z-index:95000;display:none;align-items:center;justify-content:center;padding:18px;">
+  <div style="background:#0f0f2a;border:2px solid #7c3aed;border-radius:18px;padding:18px;width:100%;max-width:360px;max-height:86vh;overflow-y:auto;">
+    <div style="font-size:18px;font-weight:900;color:#c4a0ff;text-align:center;margin-bottom:14px" data-i18n="choose_language">اختر اللغة</div>
+    <div id="lang-list" style="display:flex;flex-direction:column;gap:8px"></div>
+    <button class="cancel-btn" style="margin-top:14px" onclick="closeLangPicker()" data-i18n="close">إغلاق</button>
   </div>
 </div>
 
@@ -507,32 +505,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
         <rect x="19.3" y="25.3" width="1.4" height="2.4" fill="#5e3517"/>
       </svg>
       <div>أغراضك</div>
-    </div>
-    <div class="hex hex-sm hx-store" onclick="openStore()">
-      <svg class="tb-svg" viewBox="0 0 40 40">
-        <defs><radialGradient id="coinFace2" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#FFF0A8"/><stop offset=".55" stop-color="#F4C430"/><stop offset="1" stop-color="#B8860B"/></radialGradient></defs>
-        <g transform="rotate(-11 19 16)">
-          <rect x="11" y="4" width="16" height="22" rx="2.2" fill="#fff" stroke="#b9b9cc" stroke-width="1"/>
-          <text x="14" y="11" font-size="6" font-weight="900" fill="#d62f4c" font-family="Arial,sans-serif">A</text>
-          <path d="M19 13 q-2.4 -2.6 -4 0 q-1.4 2.2 4 5.4 q5.4 -3.2 4 -5.4 q-1.6 -2.6 -4 0 Z" fill="#d62f4c"/>
-        </g>
-        <g transform="translate(20.5 21) scale(0.135)">
-          <g stroke="#4A0A1C" stroke-width="2.5" stroke-linejoin="round">
-            <polygon points="50,50 96,50 73,89.8" fill="#A81E39"/>
-            <polygon points="50,50 73,89.8 27,89.8" fill="#6F1126"/>
-            <polygon points="50,50 27,89.8 4,50" fill="#A81E39"/>
-            <polygon points="50,50 4,50 27,10.2" fill="#D62F4C"/>
-            <polygon points="50,50 27,10.2 73,10.2" fill="#F0506E"/>
-            <polygon points="50,50 73,10.2 96,50" fill="#D62F4C"/>
-          </g>
-          <polygon points="96,50 73,89.8 27,89.8 4,50 27,10.2 73,10.2" fill="none" stroke="#4A0A1C" stroke-width="3.5" stroke-linejoin="round"/>
-        </g>
-        <ellipse cx="13" cy="31" rx="9" ry="9" fill="#9c7209"/>
-        <circle cx="13" cy="29.5" r="8.6" fill="url(#coinFace2)" stroke="#8A6D00" stroke-width="1.3"/>
-        <circle cx="13" cy="29.5" r="6.4" fill="none" stroke="#C9971A" stroke-width=".9"/>
-        <text x="13" y="32" text-anchor="middle" font-size="5.6" font-weight="900" fill="#7A5C00" font-family="Arial,sans-serif">BVO</text>
-      </svg>
-      <div>المتجر</div>
     </div>
     <div class="hex hex-sm hx-cups">
       <svg class="tb-svg" viewBox="0 0 40 40">
@@ -580,7 +552,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
           <circle cx="15" cy="18" r="1.3" fill="#0a1f3e"/><circle cx="25" cy="18" r="1.3" fill="#0a1f3e"/>
           <rect x="13" y="24" width="14" height="2.6" rx="1.3" fill="#9cc8ff"/>
         </svg>
-        <span class="mc-name">اللعب ضد بوت</span>
+        <span class="mc-name" data-i18n="m_bot">اللعب ضد بوت</span>
       </div>
       <div class="mode-card m-classic" onclick="openClassic()">
         <svg class="mc-ic" viewBox="0 0 40 40">
@@ -589,17 +561,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
           <rect x="13.5" y="7" width="13" height="19" rx="2.2" fill="#fff" stroke="#b9602a" stroke-width="1.2"/>
           <polygon points="20,11 21.4,14.5 25.2,14.5 22.1,16.8 23.3,20.5 20,18.2 16.7,20.5 17.9,16.8 14.8,14.5 18.6,14.5" fill="#e07030"/>
         </svg>
-        <span class="mc-name">الطور الكلاسيكي</span>
+        <span class="mc-name" data-i18n="m_classic">الطور الكلاسيكي</span>
       </div>
-      <div class="mode-card m-friends" onclick="openCustom()">
+      <div class="mode-card m-store" onclick="openStore()">
         <svg class="mc-ic" viewBox="0 0 40 40">
-          <rect x="7" y="9" width="26" height="22" rx="4" fill="none" stroke="#5ce0d2" stroke-width="2.2"/>
-          <circle cx="14" cy="16" r="2.6" fill="#5ce0d2"/>
-          <circle cx="26" cy="16" r="2.6" fill="#1f8c80"/>
-          <rect x="11" y="22" width="18" height="3" rx="1.5" fill="#5ce0d2"/>
-          <path d="M20 3 L23 8 L17 8 Z" fill="#5ce0d2"/>
+          <path d="M8 13 h24 l-2 4 H10 Z" fill="#ffd966"/>
+          <rect x="9" y="17" width="22" height="15" rx="2" fill="#3aa64a" stroke="#1c5a28" stroke-width="1.4"/>
+          <rect x="9" y="17" width="22" height="5" fill="#2e8a3c"/>
+          <path d="M12 13 a3 3 0 0 1 6 0 M22 13 a3 3 0 0 1 6 0" fill="none" stroke="#ffd966" stroke-width="1.8"/>
+          <circle cx="20" cy="26" r="4.5" fill="#ffd700" stroke="#b8860b" stroke-width="1.2"/>
+          <text x="20" y="28.4" text-anchor="middle" font-size="5" font-weight="900" fill="#7a5c00" font-family="Arial">$</text>
         </svg>
-        <span class="mc-name">تخصيص</span>
+        <span class="mc-name" data-i18n="m_store">المتجر</span>
       </div>
       <div class="mode-card m-cups" onclick="openCups()">
         <svg class="mc-ic" viewBox="0 0 40 40">
@@ -616,7 +589,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
           <rect x="12.5" y="33" width="15" height="3.2" rx="1" fill="url(#basePink)" stroke="#a01060" stroke-width=".8"/>
           <rect x="9.5" y="36.2" width="21" height="3.4" rx="1.6" fill="url(#basePink)" stroke="#a01060" stroke-width="1"/>
         </svg>
-        <span class="mc-name">طور الكؤوس</span>
+        <span class="mc-name" data-i18n="m_cups">طور الكؤوس</span>
       </div>
     </div></div>
   </div>
@@ -631,16 +604,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
         <rect x="25" y="5" width="3" height="7" rx="1.5" fill="#ffcf4d"/>
         <polygon points="20,19 21.7,24 27,24 22.7,27.3 24.3,32.5 20,29.3 15.7,32.5 17.3,27.3 13,24 18.3,24" fill="#ffcf4d"/>
       </svg>
-      <div class="mc-txt"><span class="mc-t">التحديات</span><span class="mc-s">يومية · أسبوعية · جوائز</span></div>
+      <div class="mc-txt"><span class="mc-t" data-i18n="challenges">التحديات</span><span class="mc-s" data-i18n="challenges_sub">يومية · أسبوعية · جوائز</span></div>
     </div>
-    <div class="mcard mc-lobby" onclick="openFriends()">
+    <div class="mcard mc-lobby" onclick="openProfile()">
       <svg viewBox="0 0 40 40">
-        <circle cx="14" cy="15" r="5.5" fill="#7ff0e2"/>
-        <circle cx="27" cy="15" r="5.5" fill="#7ff0e2"/>
-        <path d="M3 34 a11 11 0 0 1 22 0 Z" fill="#7ff0e2"/>
-        <path d="M16 34 a11 11 0 0 1 22 0 Z" fill="#54cabb"/>
+        <circle cx="20" cy="14" r="7" fill="#86c2ff"/>
+        <path d="M7 35 a13 13 0 0 1 26 0 Z" fill="#86c2ff"/>
       </svg>
-      <div class="mc-txt"><span class="mc-t">الأصدقاء</span><span class="mc-s">العب مع أصحابك</span></div>
+      <div class="mc-txt"><span class="mc-t" data-i18n="my_profile">ملفي الشخصي</span><span class="mc-s" data-i18n="my_profile_sub">المستوى والإحصائيات</span></div>
     </div>
   </div>
 </div>
@@ -679,16 +650,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
   </div>
   <div class="tabs">
     <button class="tab-btn on" id="tab-friends" onclick="frTab('friends')">👤 الأصدقاء</button>
-    <button class="tab-btn" id="tab-private" onclick="frTab('private')">🎮 مباراة خاصة</button>
+    <button class="tab-btn" id="tab-lobby" onclick="frTab('lobby')">🏠 اللوبي</button>
+    <button class="tab-btn" id="tab-rooms" onclick="frTab('rooms')">🔑 غرف</button>
   </div>
   <!-- FRIENDS LIST -->
   <div id="fr-pane-friends" style="padding:0 14px 20px;display:flex;flex-direction:column;gap:8px;">
-    <div style="background:rgba(124,58,237,.12);border:1px solid #7c3aed;border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px">
-      <div><div style="font-size:11px;color:#9a8ac8">معرّفك (شاركه ليضيفك أصدقاؤك)</div><div style="font-size:16px;font-weight:900;color:#fff;letter-spacing:2px" id="my-id-disp">—</div></div>
-      <button class="skin-btn" onclick="copyMyId()" style="padding:8px 14px">📋 نسخ</button>
-    </div>
     <div id="fr-list"></div>
-    <button class="lbtn btn-email" onclick="addFriendPrompt()">➕ إضافة صديق (بالـ ID)</button>
+    <button class="lbtn btn-email" onclick="addFriendPrompt()">➕ إضافة أصدقاء (بالـ ID)</button>
   </div>
   <!-- LOBBY -->
   <div id="fr-pane-lobby" style="display:none;padding:0 14px 20px;flex-direction:column;gap:8px;">
@@ -699,39 +667,21 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
     <div style="font-size:12px;color:#888;text-align:center;margin-top:6px">الأصدقاء معك في اللوبي:</div>
     <div id="lb-list"></div>
   </div>
-  <!-- PRIVATE MATCH -->
-  <div id="fr-pane-private" style="display:none;padding:14px;flex-direction:column;gap:12px;align-items:center;">
-    <button class="lbtn btn-email" onclick="openPrivateStages()">➕ إنشاء مباراة خاصة</button>
-    <button class="lbtn btn-guest" onclick="goTo('s-join-room')">🔑 دخول بكود مباراة</button>
-    <div style="color:#888;font-size:12px;text-align:center;max-width:300px;line-height:1.6">المباراة الخاصة بينك وبين أصدقائك فقط — اختر مرحلة من الطور الكلاسيكي، ويصلك كود تُرسله لهم.</div>
+  <!-- ROOMS -->
+  <div id="fr-pane-rooms" style="display:none;padding:14px;display:flex;flex-direction:column;gap:12px;align-items:center;">
+    <button class="lbtn btn-email" onclick="createRoom()">➕ إنشاء غرفة برمز</button>
+    <button class="lbtn btn-guest" onclick="goTo('s-join-room')">🔑 دخول غرفة برمز</button>
   </div>
 </div>
 
 <!-- CREATE ROOM -->
 <div id="s-create-room" class="screen sc-center">
-  <div class="setup-title">➕ مباراتك الخاصة جاهزة</div>
-  <div id="room-stage" style="color:#7ff0e2;font-size:13px;font-weight:800;text-align:center;min-height:18px"></div>
+  <div class="setup-title">➕ غرفتك جاهزة</div>
   <div class="setup-label" style="text-align:center">شارك هذا الرمز مع أصدقائك ليدخلوا</div>
   <div class="room-code-box"><span id="room-code">-----</span></div>
   <button class="lbtn btn-email" id="copy-btn" onclick="copyRoomCode()">📋 نسخ الرمز</button>
   <div style="color:#666;font-size:12px;text-align:center;max-width:290px">الاتصال الحقيقي بالأصدقاء سيُضاف لاحقاً عند ربط السيرفر</div>
   <button class="sm-back" onclick="openFriends()">← رجوع</button>
-</div>
-
-<!-- ROOM LOBBY (مباراة خاصة) -->
-<div id="s-room-lobby" class="screen sc-center">
-  <div class="setup-title">🎮 لوبي المباراة الخاصة</div>
-  <div id="lobby-stage" style="color:#7ff0e2;font-size:13px;font-weight:800;text-align:center;min-height:18px"></div>
-  <div class="setup-label" style="text-align:center">شارك هذا الرمز مع أصدقائك:</div>
-  <div class="room-code-box"><span id="lobby-code">-----</span></div>
-  <button class="lbtn btn-email" onclick="copyLobbyCode()">📋 نسخ الرمز</button>
-  <div style="width:100%;max-width:330px;margin-top:8px">
-    <div style="font-size:13px;color:#9a8ac8;margin-bottom:6px">👥 اللاعبون في الغرفة:</div>
-    <div id="lobby-players" style="display:flex;flex-direction:column;gap:6px"></div>
-  </div>
-  <button class="lbtn btn-google" id="lobby-start-btn" style="display:none;margin-top:6px" onclick="startPrivateMatch()">🚀 ابدأ المباراة</button>
-  <div id="lobby-wait" style="color:#888;font-size:12px;text-align:center;max-width:300px">في انتظار انضمام أصدقائك...</div>
-  <button class="sm-back" onclick="leaveLobby()">← خروج</button>
 </div>
 
 <!-- JOIN ROOM -->
@@ -742,16 +692,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
   <button class="lbtn btn-email" onclick="joinRoom()">🚪 دخول</button>
   <div id="join-msg" style="color:#a78bfa;font-size:13px;text-align:center;white-space:pre-line;min-height:20px;max-width:290px"></div>
   <button class="sm-back" onclick="openFriends()">← رجوع</button>
-</div>
-
-<!-- PRIVATE MATCH — STAGE PICKER -->
-<div id="s-private-stage" class="screen">
-  <div class="cups-head">
-    <button class="cups-back" onclick="openFriends()">←</button>
-    <div class="cups-title" style="color:#7ff0e2">🎮 اختر مرحلة المباراة الخاصة</div>
-    <div style="width:40px"></div>
-  </div>
-  <div class="tiers-scroll" id="private-stage-scroll"></div>
 </div>
 
 <!-- CUSTOM MODE SETUP -->
@@ -995,9 +935,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
 <!-- PROFILE -->
 <div id="s-profile" class="screen" style="background:radial-gradient(ellipse at 50% 15%,#1c0550 0%,#070715 62%);overflow-y:auto;">
   <div class="cups-head">
+    <button class="lang-btn-sm" onclick="openLangPicker()"><span id="pf-lang-flag">🌐</span></button>
+    <div class="cups-title" style="color:#c4a0ff" data-i18n="profile_title">👤 الملف الشخصي</div>
     <button class="cups-back" onclick="goTo('s-main')">←</button>
-    <div class="cups-title" style="color:#c4a0ff">👤 الملف الشخصي</div>
-    <div style="width:40px"></div>
   </div>
   <div style="padding:18px;display:flex;flex-direction:column;align-items:center;gap:14px;">
     <div id="pf-avatar" style="width:88px;height:88px;border-radius:50%;background:linear-gradient(160deg,#7c3aed,#3b0d92);display:flex;align-items:center;justify-content:center;font-size:46px;border:3px solid #a78bfa;box-shadow:0 0 22px rgba(124,58,237,.5);cursor:pointer" onclick="cycleAvatar()"></div>
@@ -1014,14 +954,12 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
     </div>
     <!-- STATS GRID -->
     <div style="width:100%;max-width:330px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div class="pf-stat"><div class="pf-sv" id="pf-cups">0</div><div class="pf-sl">🏆 الكؤوس</div></div>
-      <div class="pf-stat"><div class="pf-sv" id="pf-streak">0</div><div class="pf-sl">🔥 أعلى سلسلة انتصارات</div></div>
-      <div class="pf-stat"><div class="pf-sv" id="pf-wins">0</div><div class="pf-sl">🥇 مجموع الانتصارات</div></div>
-      <div class="pf-stat"><div class="pf-sv" id="pf-coins">0</div><div class="pf-sl">🪙 عملات BVO</div></div>
+      <div class="pf-stat"><div class="pf-sv" id="pf-cups">0</div><div class="pf-sl" data-i18n="stat_cups">🏆 الكؤوس</div></div>
+      <div class="pf-stat"><div class="pf-sv" id="pf-streak">0</div><div class="pf-sl" data-i18n="stat_streak">🔥 أعلى سلسلة انتصارات</div></div>
+      <div class="pf-stat"><div class="pf-sv" id="pf-wins">0</div><div class="pf-sl" data-i18n="stat_wins">🥇 مجموع الانتصارات</div></div>
+      <div class="pf-stat"><div class="pf-sv" id="pf-coins">0</div><div class="pf-sl" data-i18n="stat_coins">🪙 عملات BVO</div></div>
     </div>
-    <button class="lbtn btn-email" style="max-width:330px" onclick="editName()">✏️ تغيير الاسم</button>
-    <button class="lbtn btn-email" style="max-width:330px;background:linear-gradient(135deg,#0d9488,#14b8a6)" onclick="startTutorialGame()">🎓 إعادة شرح اللعبة (تدريب)</button>
-    <button class="lbtn btn-guest" style="max-width:330px" onclick="bvoLogout()">🚪 تسجيل الخروج</button>
+    <button class="lbtn btn-email" style="max-width:330px" onclick="editName()" data-i18n="change_name">✏️ تغيير الاسم</button>
   </div>
 </div>
 
@@ -1059,14 +997,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
 <div id="s-store" class="screen" style="background:radial-gradient(ellipse at 50% 0%,#0a2a0a 0%,var(--bg) 70%);overflow-y:auto;">
   <div class="cups-head">
     <button class="cups-back" onclick="goTo('s-main')">←</button>
-    <div class="cups-title" style="color:#4ec94e">🛒 المتجر</div>
+    <div class="cups-title" style="color:#4ec94e">🛒 <span data-i18n="store_title">المتجر</span></div>
     <div style="display:flex;gap:6px">
       <div class="cups-bal" style="background:rgba(255,215,0,.12);border-color:#e8a000;color:#ffd700"><span id="store-coin">0</span> 🪙</div>
       <div class="cups-bal" style="background:rgba(204,51,51,.14);border-color:#cc3333;color:#ff6b6b"><span id="store-gem">0</span> 💎</div>
     </div>
   </div>
-  <div style="font-size:12.5px;color:#8fd88f;text-align:center;padding:10px 16px 0">🎴 أشكال البطاقات — لكل شكل ميزة خاصة أثناء اللعب</div>
-  <div class="skins-wrap" id="store-wrap"></div>
+  <div class="ch-tabs">
+    <button class="ch-tab on" id="stt-cards" onclick="storeTab('cards')" style="border-color:rgba(124,58,237,.4);color:#c4a0ff" data-i18n="store_tab_cards">🎴 البطاقات</button>
+    <button class="ch-tab" id="stt-gems" onclick="storeTab('gems')" style="border-color:rgba(204,51,51,.4);color:#ff9b9b" data-i18n="store_tab_gems">💎 جواهر</button>
+    <button class="ch-tab" id="stt-coins" onclick="storeTab('coins')" style="border-color:rgba(232,160,0,.4);color:#ffcf4d" data-i18n="store_tab_coins">🪙 عملات</button>
+  </div>
+  <div id="store-body"></div>
 </div>
 
 <!-- BOT SETUP -->
@@ -1090,6 +1032,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
   </div>
   <button class="start-btn" onclick="startBotGame()">🚀 ابدأ اللعبة!</button>
   <button class="start-btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;margin-top:4px" onclick="startTutorial()">🎓 المباراة التدريبية (تعلّم اللعب)</button>
+  <button class="start-btn" style="background:linear-gradient(135deg,#0ea5e9,#22c55e);color:#fff;margin-top:4px" onclick="startScenario()">🎬 الجولة التعليمية (سيناريو موجّه خطوة بخطوة)</button>
   <button class="sm-back" onclick="goTo('s-main')">← رجوع</button>
 </div>
 
@@ -1104,7 +1047,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
     <button class="grestart" onclick="openBotSetup()">↺ إعادة</button>
   </div>
   <div class="pstrip" id="pstrip"></div>
-  <div class="pick-hint" id="pick-hint"></div>
+  <div id="scen-banner" style="display:none;margin:4px 8px;padding:9px 12px;border-radius:12px;background:linear-gradient(135deg,#0b3b66,#10603a);border:1px solid #38bdf8;color:#eafff5;font-weight:800;font-size:13px;line-height:1.5;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.4)"></div>
   <div class="board-wrap" id="board-wrap">
     <svg id="game-board" xmlns="http://www.w3.org/2000/svg"></svg>
 
@@ -1122,8 +1065,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
         <div class="ovtitle" id="ov-buy-name">عقار</div>
         <div class="ovsub" id="ov-buy-info"></div>
         <div class="ovbtns">
-          <button class="ovbtn og" onclick="doBuy(true)">🏡 اشتري</button>
-          <button class="ovbtn ow" onclick="doBuy(false)">تجاوز</button>
+          <button class="ovbtn og" id="buy-yes" onclick="doBuy(true)">🏡 اشتري</button>
+          <button class="ovbtn ow" id="buy-no" onclick="doBuy(false)">تجاوز</button>
         </div>
       </div>
     </div>
@@ -1219,6 +1162,85 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
    NAV
 ═══════════════════════════════════ */
 function goTo(id){if(id!=='s-bot-game'&&id!=='s-bot-result')stopTick();document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+/* ═══════════════════════════════════
+   اللغات (i18n)
+═══════════════════════════════════ */
+const LANGS=[
+  {code:'ar',name:'العربية',flag:'🇸🇦',dir:'rtl'},
+  {code:'en',name:'English',flag:'🇬🇧',dir:'ltr'},
+  {code:'tr',name:'Türkçe',flag:'🇹🇷',dir:'ltr'},
+  {code:'zh',name:'中文',flag:'🇨🇳',dir:'ltr'},
+  {code:'ru',name:'Русский',flag:'🇷🇺',dir:'ltr'},
+  {code:'ja',name:'日本語',flag:'🇯🇵',dir:'ltr'},
+  {code:'it',name:'Italiano',flag:'🇮🇹',dir:'ltr'},
+  {code:'es',name:'Español',flag:'🇪🇸',dir:'ltr'},
+];
+const I18N={
+  language:{ar:'اللغة',en:'Language',tr:'Dil',zh:'语言',ru:'Язык',ja:'言語',it:'Lingua',es:'Idioma'},
+  choose_language:{ar:'اختر اللغة',en:'Choose Language',tr:'Dil Seçin',zh:'选择语言',ru:'Выберите язык',ja:'言語を選択',it:'Scegli lingua',es:'Elegir idioma'},
+  close:{ar:'إغلاق',en:'Close',tr:'Kapat',zh:'关闭',ru:'Закрыть',ja:'閉じる',it:'Chiudi',es:'Cerrar'},
+  login_google:{ar:'الدخول بـ Google',en:'Sign in with Google',tr:'Google ile Giriş',zh:'使用 Google 登录',ru:'Войти через Google',ja:'Googleでログイン',it:'Accedi con Google',es:'Entrar con Google'},
+  login_email:{ar:'البريد الإلكتروني',en:'Email',tr:'E-posta',zh:'电子邮件',ru:'Эл. почта',ja:'メール',it:'Email',es:'Correo'},
+  or:{ar:'أو',en:'or',tr:'veya',zh:'或',ru:'или',ja:'または',it:'o',es:'o'},
+  login_guest:{ar:'دخول كضيف',en:'Play as Guest',tr:'Misafir Girişi',zh:'访客登录',ru:'Войти как гость',ja:'ゲストでプレイ',it:'Entra come ospite',es:'Jugar como invitado'},
+  m_bot:{ar:'اللعب ضد بوت',en:'Play vs Bot',tr:'Bota Karşı',zh:'对战机器人',ru:'Против бота',ja:'ボットと対戦',it:'Contro Bot',es:'Contra Bot'},
+  m_classic:{ar:'الطور الكلاسيكي',en:'Classic Mode',tr:'Klasik Mod',zh:'经典模式',ru:'Классика',ja:'クラシック',it:'Modalità Classica',es:'Modo Clásico'},
+  m_store:{ar:'المتجر',en:'Store',tr:'Mağaza',zh:'商店',ru:'Магазин',ja:'ストア',it:'Negozio',es:'Tienda'},
+  m_cups:{ar:'طور الكؤوس',en:'Cups Mode',tr:'Kupa Modu',zh:'奖杯模式',ru:'Кубки',ja:'カップ戦',it:'Modalità Coppe',es:'Modo Copas'},
+  challenges:{ar:'التحديات',en:'Challenges',tr:'Görevler',zh:'挑战',ru:'Задания',ja:'チャレンジ',it:'Sfide',es:'Desafíos'},
+  challenges_sub:{ar:'يومية · أسبوعية · جوائز',en:'Daily · Weekly · Rewards',tr:'Günlük · Haftalık · Ödüller',zh:'每日 · 每周 · 奖励',ru:'Ежедн. · Еженед. · Награды',ja:'デイリー · ウィークリー · 報酬',it:'Giorn. · Settim. · Premi',es:'Diario · Semanal · Premios'},
+  my_profile:{ar:'ملفي الشخصي',en:'My Profile',tr:'Profilim',zh:'我的资料',ru:'Профиль',ja:'プロフィール',it:'Profilo',es:'Mi perfil'},
+  my_profile_sub:{ar:'المستوى والإحصائيات',en:'Level & Stats',tr:'Seviye ve İstatistik',zh:'等级与统计',ru:'Уровень и статистика',ja:'レベルと統計',it:'Livello e statistiche',es:'Nivel y estadísticas'},
+  store_title:{ar:'المتجر',en:'Store',tr:'Mağaza',zh:'商店',ru:'Магазин',ja:'ストア',it:'Negozio',es:'Tienda'},
+  store_tab_cards:{ar:'🎴 البطاقات',en:'🎴 Cards',tr:'🎴 Kartlar',zh:'🎴 卡牌',ru:'🎴 Карты',ja:'🎴 カード',it:'🎴 Carte',es:'🎴 Cartas'},
+  store_tab_gems:{ar:'💎 جواهر',en:'💎 Gems',tr:'💎 Mücevher',zh:'💎 宝石',ru:'💎 Кристаллы',ja:'💎 ジェム',it:'💎 Gemme',es:'💎 Gemas'},
+  store_tab_coins:{ar:'🪙 عملات',en:'🪙 Coins',tr:'🪙 Coin',zh:'🪙 金币',ru:'🪙 Монеты',ja:'🪙 コイン',it:'🪙 Monete',es:'🪙 Monedas'},
+  store_buy_coins:{ar:'اشترِ عملات BVO',en:'Buy BVO Coins',tr:'BVO Coin Satın Al',zh:'购买 BVO 金币',ru:'Купить монеты BVO',ja:'BVOコインを購入',it:'Compra Monete BVO',es:'Comprar Monedas BVO'},
+  store_buy_gems:{ar:'اشترِ جواهر BVO',en:'Buy BVO Gems',tr:'BVO Mücevher Satın Al',zh:'购买 BVO 宝石',ru:'Купить кристаллы BVO',ja:'BVOジェムを購入',it:'Compra Gemme BVO',es:'Comprar Gemas BVO'},
+  store_cards_note:{ar:'🎴 أشكال البطاقات — لكل شكل ميزة خاصة أثناء اللعب',en:'🎴 Card skins — each has a special in-game perk',tr:'🎴 Kart desenleri — her birinin özel bir avantajı var',zh:'🎴 卡牌外观 — 每款都有特殊游戏加成',ru:'🎴 Скины карт — у каждого свой бонус в игре',ja:'🎴 カードスキン — それぞれ特別な効果',it:'🎴 Skin carte — ognuna con un vantaggio',es:'🎴 Diseños de cartas — cada uno con una ventaja'},
+  coin_unit:{ar:'عملة',en:'coins',tr:'coin',zh:'金币',ru:'монет',ja:'コイン',it:'monete',es:'monedas'},
+  gem_unit:{ar:'جوهرة',en:'gems',tr:'mücevher',zh:'宝石',ru:'кристаллов',ja:'ジェム',it:'gemme',es:'gemas'},
+  sar:{ar:'ريال',en:'SAR',tr:'SAR',zh:'里亚尔',ru:'SAR',ja:'SAR',it:'SAR',es:'SAR'},
+  purchase_done:{ar:'🎉 تمت إضافة',en:'🎉 Added',tr:'🎉 Eklendi',zh:'🎉 已添加',ru:'🎉 Добавлено',ja:'🎉 追加しました',it:'🎉 Aggiunto',es:'🎉 Añadido'},
+  purchase_demo:{ar:'(الدفع الحقيقي يُضاف عند النشر)',en:'(real payment added at launch)',tr:'(gerçek ödeme yayında eklenecek)',zh:'(正式版将接入真实支付)',ru:'(реальная оплата при запуске)',ja:'(実際の決済は公開時に追加)',it:'(pagamento reale al lancio)',es:'(pago real al publicar)'},
+  profile_title:{ar:'👤 الملف الشخصي',en:'👤 Profile',tr:'👤 Profil',zh:'👤 个人资料',ru:'👤 Профиль',ja:'👤 プロフィール',it:'👤 Profilo',es:'👤 Perfil'},
+  change_name:{ar:'✏️ تغيير الاسم',en:'✏️ Change Name',tr:'✏️ İsmi Değiştir',zh:'✏️ 更改名称',ru:'✏️ Сменить имя',ja:'✏️ 名前を変更',it:'✏️ Cambia nome',es:'✏️ Cambiar nombre'},
+  stat_cups:{ar:'🏆 الكؤوس',en:'🏆 Cups',tr:'🏆 Kupalar',zh:'🏆 奖杯',ru:'🏆 Кубки',ja:'🏆 カップ',it:'🏆 Coppe',es:'🏆 Copas'},
+  stat_streak:{ar:'🔥 أعلى سلسلة انتصارات',en:'🔥 Best win streak',tr:'🔥 En iyi seri',zh:'🔥 最高连胜',ru:'🔥 Лучшая серия',ja:'🔥 最高連勝',it:'🔥 Serie migliore',es:'🔥 Mejor racha'},
+  stat_wins:{ar:'🥇 مجموع الانتصارات',en:'🥇 Total wins',tr:'🥇 Toplam galibiyet',zh:'🥇 总胜场',ru:'🥇 Всего побед',ja:'🥇 総勝利',it:'🥇 Vittorie totali',es:'🥇 Victorias totales'},
+  stat_coins:{ar:'🪙 عملات BVO',en:'🪙 BVO coins',tr:'🪙 BVO coin',zh:'🪙 BVO 金币',ru:'🪙 Монеты BVO',ja:'🪙 BVOコイン',it:'🪙 Monete BVO',es:'🪙 Monedas BVO'},
+};
+let LANG='ar';
+function t(key){const e=I18N[key];if(!e)return null;return e[LANG]||e.ar||null;}
+function curLangMeta(){return LANGS.find(l=>l.code===LANG)||LANGS[0];}
+function applyLang(lang){
+  if(lang)LANG=lang;
+  try{localStorage.setItem('bvo_lang',LANG);}catch(e){}
+  const meta=curLangMeta();
+  document.documentElement.lang=LANG;
+  document.documentElement.dir=meta.dir;
+  // حدّث كل العناصر التي تحمل data-i18n
+  document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.getAttribute('data-i18n'));if(v!=null)el.textContent=v;});
+  const lf=document.getElementById('login-lang-flag');if(lf)lf.textContent=meta.flag;
+  const pf=document.getElementById('pf-lang-flag');if(pf)pf.textContent=meta.flag;
+  // أعد رسم الشاشات الديناميكية المرئية
+  if(document.getElementById('s-store')?.classList.contains('active'))renderStore();
+}
+function loadLang(){let s='ar';try{s=localStorage.getItem('bvo_lang')||'ar';}catch(e){}if(!LANGS.some(l=>l.code===s))s='ar';LANG=s;}
+function openLangPicker(){
+  const box=document.getElementById('lang-list');box.innerHTML='';
+  LANGS.forEach(l=>{
+    const b=document.createElement('button');
+    b.className='lbtn '+(l.code===LANG?'btn-email':'btn-guest');
+    b.style.cssText='justify-content:flex-start;gap:12px;font-size:16px';
+    b.innerHTML=`<span style="font-size:22px">${l.flag}</span> ${l.name}${l.code===LANG?' ✓':''}`;
+    b.onclick=()=>{applyLang(l.code);closeLangPicker();};
+    box.appendChild(b);
+  });
+  document.getElementById('lang-overlay').style.display='flex';
+}
+function closeLangPicker(){document.getElementById('lang-overlay').style.display='none';}
 function doLogin(){
   goTo('s-main');
   // وصل عبر رابط جلسة مضيف؟ → اعرض شاشة الانضمام مباشرة
@@ -1252,13 +1274,7 @@ function joinRoom(){
   const v=document.getElementById('join-input').value.trim().toUpperCase();
   const msg=document.getElementById('join-msg');
   if(v.length<4){msg.textContent='⚠️ أدخل رمزاً صحيحاً (4 أحرف على الأقل)';return;}
-  if(typeof window.bvoJoinRoom!=='function'){msg.textContent='⏳ الاتصال بالسيرفر لم يجهز بعد';return;}
-  window._roomStarted=false;
-  msg.textContent='⏳ جارٍ الدخول...';
-  window.bvoJoinRoom(v).then(r=>{
-    if(!r.ok){msg.textContent='⚠️ '+(r.msg||'تعذّر الدخول');return;}
-    msg.textContent=''; goTo('s-room-lobby'); renderRoomLobby();
-  });
+  msg.textContent=`✅ تم إدخال الرمز: ${v}\n(الاتصال الحقيقي بالأصدقاء سيُضاف لاحقاً مع السيرفر)`;
 }
 
 /* ═══════════════════════════════════
@@ -1323,7 +1339,6 @@ function openBotSetup(){renderQuickLevels();renderBotLevels();goTo('s-bot-setup'
    PLAYER WALLET (BVOcoin + الكؤوس) — يُحفظ
 ═══════════════════════════════════ */
 let PLAYER={coins:100000000,cups:5000,gems:0,cardSkin:'classic',ownedSkins:['classic'],name:'',id:'',level:1,xp:0,bestStreak:0,streak:0,wins:0,avatar:'🦊',friends:[]};
-window.PLAYER=PLAYER;
 /* نظام اللِفِل: XP اللازم للوصول لمستوى معيّن */
 function xpForLevel(lv){return lv*100;} // المستوى 2 يحتاج 100، 3 يحتاج 200... تراكمياً
 function levelProgress(){
@@ -1522,11 +1537,73 @@ function renderItems(){
 }
 /* ═══ المتجر: شراء أشكال البطاقات ═══ */
 function curIcon(c){return c==='gems'?'💎':'🪙';}
-function openStore(){renderStore();goTo('s-store');}
+/* ═══ حزم العملات والجواهر (الأسعار بالريال) ═══ */
+const COIN_PACKS=[
+  {amt:5000,   price:'11.99'},
+  {amt:17000,  price:'23.99'},
+  {amt:53000,  price:'39.99'},
+  {amt:168000, price:'99.99'},
+  {amt:324000, price:'139.99'},
+];
+const GEM_PACKS=[
+  {amt:80,   price:'11.99'},
+  {amt:340,  price:'23.99'},
+  {amt:1268, price:'39.99'},
+  {amt:3780, price:'99.99'},
+  {amt:6852, price:'139.99'},
+];
+/* أيقونة عملة BVO */
+const COIN_SVG=`<svg viewBox="0 0 36 38" style="width:38px;height:40px;flex-shrink:0"><defs><radialGradient id="cpkF" cx=".4" cy=".35" r=".75"><stop offset="0" stop-color="#FFF0A8"/><stop offset=".55" stop-color="#F4C430"/><stop offset="1" stop-color="#B8860B"/></radialGradient></defs><ellipse cx="18" cy="22" rx="14" ry="14" fill="#9c7209"/><circle cx="18" cy="19" r="14" fill="url(#cpkF)" stroke="#8A6D00" stroke-width="1.4"/><circle cx="18" cy="19" r="10.6" fill="none" stroke="#C9971A" stroke-width="1"/><text x="18" y="22.6" text-anchor="middle" font-size="8.4" font-weight="900" fill="#7A5C00" font-family="Arial">BVO</text></svg>`;
+/* أيقونة جوهرة BVO */
+const GEM_SVG=`<svg viewBox="0 0 36 42" style="width:34px;height:40px;flex-shrink:0"><polygon points="18,1 35,10.5 35,31.5 18,41 1,31.5 1,10.5" fill="#5a0c0c" stroke="#cc2a2a" stroke-width="1.5"/><polygon points="18,6 30,12.5 30,29.5 18,36 6,29.5 6,12.5" fill="#7a1414" stroke="#ff5a5a" stroke-width="1"/><polygon points="18,11 25,15 25,27 18,31 11,27 11,15" fill="#b02020" stroke="#ff8a8a" stroke-width="0.8"/><circle cx="18" cy="21" r="3.4" fill="#ffd0d0" opacity=".8"/></svg>`;
+
+let STORE_TAB='cards';
+function openStore(){STORE_TAB='cards';storeTab('cards');goTo('s-store');}
+function storeTab(t){
+  STORE_TAB=t;
+  ['cards','gems','coins'].forEach(k=>{const b=document.getElementById('stt-'+k);if(b)b.classList.toggle('on',k===t);});
+  renderStore();
+}
+/* بطاقة شراء حزمة (عملات/جواهر) */
+function packRow(p,kind){
+  const icon=kind==='coins'?COIN_SVG:GEM_SVG;
+  const col=kind==='coins'?'#ffcf4d':'#ff9b9b';
+  const unit=kind==='coins'?(t('coin_unit')||'عملة'):(t('gem_unit')||'جوهرة');
+  const d=document.createElement('div');
+  d.style.cssText='display:flex;align-items:center;gap:13px;background:var(--card,rgba(255,255,255,.05));border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:12px 14px;';
+  d.innerHTML=`${icon}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:18px;font-weight:900;color:${col}">${p.amt.toLocaleString()} <span style="font-size:12px;opacity:.8">${unit}</span></div>
+    </div>
+    <button class="skin-btn" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;white-space:nowrap;padding:10px 16px;font-size:14px">${p.price} <span style="font-size:11px">${t('sar')||'ريال'}</span></button>`;
+  d.querySelector('button').onclick=()=>buyPack(kind,p);
+  return d;
+}
+function buyPack(kind,p){
+  // الزر لا يفعل شيئاً حتى نضيف بوّابة الدفع لاحقاً (لا يُمنح أي شيء)
+  toast(t('purchase_demo')||'🔒 الدفع غير متاح حالياً — سيُضاف عند نشر اللعبة');
+}
 function renderStore(){
   document.getElementById('store-coin').textContent=PLAYER.coins.toLocaleString();
   document.getElementById('store-gem').textContent=(PLAYER.gems||0).toLocaleString();
-  const box=document.getElementById('store-wrap');box.innerHTML='';
+  const body=document.getElementById('store-body');body.innerHTML='';
+  if(STORE_TAB==='coins'||STORE_TAB==='gems'){
+    const note=document.createElement('div');
+    note.style.cssText='font-size:12px;color:#8fd88f;text-align:center;padding:10px 16px 2px';
+    note.textContent=STORE_TAB==='coins'?(t('store_buy_coins')||'اشترِ عملات BVO'):(t('store_buy_gems')||'اشترِ جواهر BVO');
+    body.appendChild(note);
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;gap:10px;padding:12px 14px 24px;max-width:440px;margin:0 auto;';
+    (STORE_TAB==='coins'?COIN_PACKS:GEM_PACKS).forEach(p=>wrap.appendChild(packRow(p,STORE_TAB)));
+    body.appendChild(wrap);
+    return;
+  }
+  // تبويب البطاقات
+  const head=document.createElement('div');
+  head.style.cssText='font-size:12.5px;color:#8fd88f;text-align:center;padding:10px 16px 0';
+  head.textContent=t('store_cards_note')||'🎴 أشكال البطاقات — لكل شكل ميزة خاصة أثناء اللعب';
+  body.appendChild(head);
+  const box=document.createElement('div');box.className='skins-wrap';box.id='store-wrap';body.appendChild(box);
   SKINS.forEach(sk=>{
     const owned=ownsSkin(sk.id);
     const loan=!owned&&hasLoan(sk.id);
@@ -1575,24 +1652,7 @@ function buySkin(id){
   savePlayer();applySkin();refreshTop();renderStore();
   toast('🎉 اشتريت «'+sk.name+'» وتم تجهيزها!');
 }
-function savePlayer(){if(window.BVO_IS_GUEST)return;try{localStorage.setItem('bvo_player',JSON.stringify(PLAYER));}catch(e){}if(typeof window.bvoSaveCloud==='function')window.bvoSaveCloud(PLAYER);}
-window.applyCloudPlayer=function(data){
-  if(!data||typeof data!=='object')return;
-  Object.keys(data).forEach(function(k){PLAYER[k]=data[k];});
-  if(!Array.isArray(PLAYER.ownedSkins))PLAYER.ownedSkins=['classic'];
-  if(!PLAYER.ownedSkins.includes('classic'))PLAYER.ownedSkins.unshift('classic');
-  if(!Array.isArray(PLAYER.friends))PLAYER.friends=[];
-  if(!PLAYER.loans||typeof PLAYER.loans!=='object')PLAYER.loans={};
-  try{localStorage.setItem('bvo_player',JSON.stringify(PLAYER));}catch(e){}
-  if(typeof refreshTop==='function')refreshTop();
-  if(typeof applySkin==='function')applySkin();
-};
-window.resetCloudPlayer=function(){
-  try{localStorage.removeItem('bvo_player');}catch(e){}
-  if(typeof loadPlayer==='function')loadPlayer();
-  if(typeof refreshTop==='function')refreshTop();
-};
-window.getPlayerData=function(){try{return JSON.parse(JSON.stringify(PLAYER));}catch(e){return null;}};
+function savePlayer(){try{localStorage.setItem('bvo_player',JSON.stringify(PLAYER));}catch(e){}}
 
 /* ═══════════════════════════════════
    البروفايل + الأصدقاء + اللوبي
@@ -2070,24 +2130,23 @@ function sessionJoinPlay(){
 }
 /* تبويبات صفحة الأصدقاء */
 function frTab(t){
-  ['friends','private'].forEach(k=>{
+  ['friends','lobby','rooms'].forEach(k=>{
     document.getElementById('tab-'+k).classList.toggle('on',k===t);
     document.getElementById('fr-pane-'+k).style.display=(k===t)?'flex':'none';
   });
   if(t==='friends')renderFriends();
+  if(t==='lobby')renderLobby();
 }
 function renderFriends(){
-  const md=document.getElementById('my-id-disp');if(md)md.textContent=window.BVO_MY_ID||PLAYER.id||'—';
-  const box=document.getElementById('fr-list');if(!box)return;box.innerHTML='';
-  const list=window.RT_FRIENDS||[];
-  if(!list.length){
-    box.innerHTML='<div style="text-align:center;color:#888;font-size:14px;padding:24px 0">ليس لديك أصدقاء بعد 🙁<br><span style="font-size:12px">شارك معرّفك وأضِف أصدقاءك بالـ ID</span></div>';
+  const box=document.getElementById('fr-list');box.innerHTML='';
+  if(!PLAYER.friends.length){
+    box.innerHTML='<div style="text-align:center;color:#888;font-size:14px;padding:24px 0">ليس لديك أصدقاء بعد 🙁</div>';
     return;
   }
-  list.forEach(f=>{
+  PLAYER.friends.forEach(f=>{
     const d=document.createElement('div');d.className='fr-item';
     d.innerHTML=`<div class="fr-av">${f.avatar||'🦊'}</div>
-      <div style="flex:1"><div class="fr-name">${f.name}</div><div class="fr-status ${f.online?'fr-on':'fr-off'}">${f.online?'🟢 متصل':'⚫ غير متصل'}</div></div>`;
+      <div style="flex:1"><div class="fr-name">${f.name}</div><div class="fr-status ${f.online?'fr-on':'fr-off'}">${f.online?'🟢 يلعب الآن':'⚫ غير متصل'}</div></div>`;
     box.appendChild(d);
   });
 }
@@ -2106,9 +2165,14 @@ function renderLobby(){
 function addFriendPrompt(){
   const id=prompt('أدخل معرّف (ID) صديقك:');
   if(!id||!id.trim())return;
-  if(typeof window.bvoAddFriend!=='function'){toast('⏳ الاتصال بقاعدة البيانات لم يجهز بعد');return;}
-  toast('⏳ جارٍ الإضافة...');
-  window.bvoAddFriend(id.trim()).then(r=>{toast((r.ok?'✅ ':'⚠️ ')+r.msg);});
+  const code=id.trim();
+  if(code===PLAYER.id){toast('🙂 لا يمكنك إضافة نفسك!');return;}
+  if(PLAYER.friends.some(f=>f.id===code)){toast('هذا الصديق مُضاف مسبقاً');return;}
+  // ملاحظة: بلا سيرفر حقيقي — نضيفه كصديق تجريبي
+  const av=AVATARS[Math.floor(Math.random()*AVATARS.length)];
+  PLAYER.friends.push({id:code,name:'صديق '+code.slice(0,4),avatar:av,online:Math.random()<0.5});
+  savePlayer();renderFriends();
+  toast('✅ تمت إضافة الصديق');
 }
 function refreshTop(){
   const c=document.getElementById('v-coin');if(c)c.textContent=PLAYER.coins.toLocaleString();
@@ -2276,7 +2340,6 @@ function claimLogin(){
 let AD_RUNNING=false;
 function runAd(seconds,onDone){
   if(AD_RUNNING)return;
-  if(typeof bvoGetAdMob==='function' && bvoGetAdMob() && BVO_adReady){ AD_RUNNING=true; bvoShowInterstitial(function(){ AD_RUNNING=false; if(onDone)onDone(); }); return; }
   AD_RUNNING=true;
   const ov=document.getElementById('ad-overlay');
   const cnt=document.getElementById('ad-count');
@@ -2294,100 +2357,21 @@ function runAd(seconds,onDone){
 /* إعلان بجائزة (حد أقصى 10 يومياً، 100 عملة) */
 function watchAd(){
   if((CH.ads||0)>=ADS_PER_DAY)return;
-  const reward=()=>{
+  runAd(5,()=>{
     CH.ads=(CH.ads||0)+1;saveCh();
     PLAYER.coins+=AD_REWARD;savePlayer();refreshTop();
     renderCh();
     toast('🎉 حصلت على '+AD_REWARD.toLocaleString()+' 🪙 لمشاهدة الإعلان');
-  };
-  if(typeof bvoGetAdMob==='function' && bvoGetAdMob() && BVO_adReady){ bvoShowRewarded(reward); return; }
-  runAd(5,reward);
+  });
 }
 /* إعلان بيني داخل اللعب — بعد كل جلستين، أو بعد جلسة واحدة استغرقت أكثر من 10 دقائق */
-let AD_LAST_TIME = Date.now(); // مؤقّت إعلانات الـ 10 دقائق — يبدأ مع الجلسة ويصفّر بعد كل إعلان
 function maybeInterstitial(gameMs){
-  // إعلان واحد كل 7 دقائق و34 ثانية، يُعرض عند نهاية المباراة فقط — لا يرتبط بعدد المباريات ولا يظهر وسط اللعب.
-  if(Date.now() - AD_LAST_TIME >= (7*60+34)*1000){
-    AD_LAST_TIME = Date.now();
-    runAd(5,()=>{});
-  }
-}
-
-/* ═══════════════════════════════════
-   AdMob — إعلانات حقيقية (نسخة الجوال فقط)
-   على الويب يستخدم الإعلان التجريبي تلقائياً
-═══════════════════════════════════ */
-const BVO_AD_TEST = true; // ⚠️ غيّرها إلى false عند النشر النهائي على المتجر
-const BVO_AD_INTERSTITIAL = 'ca-app-pub-3297139691503804/4990078151';
-const BVO_AD_REWARDED     = 'ca-app-pub-3297139691503804/4798506465';
-let BVO_AdMob = null, BVO_adReady = false, BVO_rewardFlag = false;
-
-function bvoGetAdMob(){
-  try{
-    const C = window.Capacitor;
-    if (C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins.AdMob) return C.Plugins.AdMob;
-  }catch(e){}
-  return null;
-}
-async function bvoInitAdMob(){
-  BVO_AdMob = bvoGetAdMob();
-  if (!BVO_AdMob) return;
-  try{
-    await BVO_AdMob.initialize({});
-    try{ await BVO_AdMob.addListener('onRewardedVideoAdReward', ()=>{ BVO_rewardFlag = true; }); }catch(e){}
-    try{ await BVO_AdMob.addListener('rewarded',                ()=>{ BVO_rewardFlag = true; }); }catch(e){}
-    BVO_adReady = true;
-    bvoPreloadInterstitial();
-  }catch(e){ BVO_AdMob = null; }
-}
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ()=>setTimeout(bvoInitAdMob, 800));
-else setTimeout(bvoInitAdMob, 800);
-
-function bvoPauseGame(){
-  try{ if(typeof stopTick==='function') stopTick(); if(typeof G!=='undefined' && G && G.botTO) clearTimeout(G.botTO); }catch(e){}
-}
-function bvoResumeGame(){
-  try{
-    const el = document.getElementById('s-bot-game');
-    if (el && el.classList.contains('active') && typeof G!=='undefined' && G && G.gameStart){
-      if(typeof startTick==='function') startTick();
-      if(G.players && G.players[G.turn] && G.players[G.turn].isBot && typeof scheduleBot==='function') scheduleBot();
-    }
-  }catch(e){}
-}
-let BVO_intLoaded = false;
-function bvoInMatch(){ const bg=document.getElementById('s-bot-game'); return !!(bg && bg.classList.contains('active')); }
-async function bvoPreloadInterstitial(){
-  if (!BVO_AdMob || !BVO_adReady) return;
-  try{ await BVO_AdMob.prepareInterstitial({ adId: BVO_AD_INTERSTITIAL, isTesting: BVO_AD_TEST }); BVO_intLoaded = true; }catch(e){ BVO_intLoaded = false; }
-}
-async function bvoShowInterstitial(onDone){
-  if (!BVO_AdMob || !BVO_adReady){ if(onDone)onDone(); return false; }
-  // حارس صارم: لا يظهر الإعلان أبداً إذا كان اللاعب داخل شاشة المباراة
-  if (bvoInMatch()){ if(onDone)onDone(); return false; }
-  try{
-    if(!BVO_intLoaded){ await BVO_AdMob.prepareInterstitial({ adId: BVO_AD_INTERSTITIAL, isTesting: BVO_AD_TEST }); }
-    // أعد الفحص بعد التحميل: لو دخل اللاعب مباراة أثناء التحميل → لا تعرض
-    if (bvoInMatch()){ BVO_intLoaded = true; if(onDone)onDone(); return false; }
-    await BVO_AdMob.showInterstitial();
-  }catch(e){}
-  BVO_intLoaded = false;
-  bvoPreloadInterstitial();
-  if(onDone)onDone();
-  return true;
-}
-async function bvoShowRewarded(onReward){
-  if (!BVO_AdMob || !BVO_adReady){ return false; }
-  BVO_rewardFlag = false;
-  bvoPauseGame();
-  try{
-    await BVO_AdMob.prepareRewardVideoAd({ adId: BVO_AD_REWARDED, isTesting: BVO_AD_TEST });
-    const res = await BVO_AdMob.showRewardVideoAd();
-    if (res && (res.amount!==undefined || res.type!==undefined || res.rewardItem!==undefined)) BVO_rewardFlag = true;
-  }catch(e){}
-  bvoResumeGame();
-  if (BVO_rewardFlag && onReward) onReward();
-  return true;
+  CH.gamesSinceAd=(CH.gamesSinceAd||0)+1;
+  const longGame=gameMs>=10*60*1000; // 10 دقائق
+  if(CH.gamesSinceAd>=2||longGame){
+    CH.gamesSinceAd=0;saveCh();
+    setTimeout(()=>runAd(5,()=>{}),700); // إعلان بلا جائزة
+  } else { saveCh(); }
 }
 
 /* ═══════════════════════════════════
@@ -2558,61 +2542,6 @@ function playClassic(i){
   startClassicGame(i);
 }
 
-/* ═══ المباراة الخاصة (مع الأصدقاء) ═══ */
-let PRIVATE_STAGE=-1;
-function openPrivateStages(){renderPrivateStages();goTo('s-private-stage');}
-function renderPrivateStages(){
-  const box=document.getElementById('private-stage-scroll');if(!box)return;box.innerHTML='';
-  CLASSIC.forEach((c,i)=>{
-    const d=document.createElement('div');d.className='tier';
-    d.style.background=CLASS_BG[i%CLASS_BG.length];
-    d.innerHTML=`<div class="tier-emblem e-cls"><span>🎴</span></div>
-      <div class="tier-rule">⚖️ المرحلة ${i+1}: ${c.rule}</div>
-      <button class="tier-play" onclick="createPrivateMatch(${i})">اختر هذه المرحلة</button>`;
-    box.appendChild(d);
-  });
-}
-function createPrivateMatch(stage){
-  PRIVATE_STAGE=stage; window._roomStarted=false;
-  if(typeof window.bvoCreateRoom!=='function'){toast('⏳ الاتصال بالسيرفر لم يجهز بعد');return;}
-  toast('⏳ جارٍ إنشاء المباراة...');
-  window.bvoCreateRoom(stage).then(r=>{
-    if(!r.ok){toast('⚠️ '+(r.msg||'تعذّر الإنشاء'));return;}
-    goTo('s-room-lobby'); renderRoomLobby();
-  });
-}
-function renderRoomLobby(){
-  const room=window.RT_ROOM; if(!room)return;
-  const lc=document.getElementById('lobby-code'); if(lc)lc.textContent=room.code||'';
-  const ls=document.getElementById('lobby-stage'); if(ls)ls.textContent=(CLASSIC[room.stage]?('المرحلة '+(room.stage+1)+': '+CLASSIC[room.stage].rule):'');
-  const box=document.getElementById('lobby-players');
-  if(box){
-    box.innerHTML='';
-    const players=room.players||{};
-    Object.entries(players).forEach(([uid,p])=>{
-      const isHost=uid===room.host;
-      const d=document.createElement('div');d.className='fr-item';
-      d.innerHTML=`<div class="fr-av">${p.avatar||'🦊'}</div><div style="flex:1"><div class="fr-name">${p.name||'لاعب'}${isHost?' <span style="color:#ffd700;font-size:11px">👑 المضيف</span>':''}</div></div>`;
-      box.appendChild(d);
-    });
-  }
-  const amHost=room.host===window.BVO_UID;
-  const sb=document.getElementById('lobby-start-btn'); if(sb)sb.style.display=amHost?'flex':'none';
-  const lw=document.getElementById('lobby-wait'); if(lw)lw.textContent=amHost?'اضغط «ابدأ» عندما يجهز الجميع':'في انتظار أن يبدأ المضيف...';
-}
-function startPrivateMatch(){ if(typeof window.bvoStartRoom==='function') window.bvoStartRoom(); }
-function leaveLobby(){ if(typeof window.bvoLeaveRoom==='function') window.bvoLeaveRoom(); window._roomStarted=false; goTo('s-friends'); frTab('private'); }
-function copyLobbyCode(){ const c=document.getElementById('lobby-code').textContent; try{navigator.clipboard.writeText(c);}catch(e){} toast('📋 تم نسخ الرمز'); }
-window.onRoomStart=function(stage){
-  if(window._roomStarted)return; window._roomStarted=true;
-  toast('🚀 انطلقت المباراة!');
-  setTimeout(()=>{ startOnlineMatch(stage); },400);
-};
-window.onRoomGone=function(){
-  const ls=document.getElementById('s-room-lobby');
-  if(ls&&ls.classList.contains('active')){ toast('انتهت الغرفة'); goTo('s-friends'); frTab('private'); }
-};
-
 /* ═══════════════════════════════════
    GAME CONSTANTS
 ═══════════════════════════════════ */
@@ -2683,7 +2612,7 @@ function _ev(a){if(!a||a.length<2)return 0;let up=true,dn=true;for(let i=1;i<a.l
    «المملكة السوداء»: انحياز 40% لأوراق ♠/♣ السوداء.
    «الذهبية»: فرصة 30% أكبر لأوراق K/Q/J (أي لون).
    «الكلاسيكي» و«أسود-أزرق»: بلا ميزة. */
-function skinOf(pidx){if(NET.on)return (G.players[pidx]&&G.players[pidx].skin)||'classic';return pidx===0?(PLAYER.cardSkin||'classic'):'classic';}
+function skinOf(pidx){return pidx===0?(PLAYER.cardSkin||'classic'):'classic';}
 function _topup(pidx,n){
   let d=[...G.draw],di=[...G.discard],got=[];
   const skin=skinOf(pidx);
@@ -2719,11 +2648,9 @@ function trackSeq(pidx,lb){(G._sqs=G._sqs||{})[pidx]=(G._sqs[pidx]||[]).concat(V
    GLOBAL STATE
 ═══════════════════════════════════ */
 let G={players:[],board:[],draw:[],discard:[],turn:0,phase:'pick',pend:null,botTO:null,_hoverPath:[],_bFree:false,_bPidx:0,_sq:[],_w:0,gameStart:0,turnStart:0};
-let NET={on:false,code:null,uids:[],myPidx:0,isHost:false,authority:false,_pt:null,_over:false};
-function meIdx(){return NET.on?NET.myPidx:0;}
-function pColor(idx){if(!NET.on)return (G.players[idx]&&G.players[idx].color)||'#888';return idx===NET.myPidx?'#ffd700':'#4d9fff';}
 let GTICK=null; // مؤقت التحديث
 let TUT_GAME=false, TUT_FLAGS={}; // حالة المباراة التدريبية الموجّهة
+let SCEN=null, SCEN_DONE=false, SCENARIO=[]; // الجولة التعليمية المكتوبة (scripted)
 let RAISED_IDX=-1; // فهرس الورقة المرفوعة (نظام رفع الورقة على الجوال)
 const IS_TOUCH = ('ontouchstart' in window) || (navigator.maxTouchPoints>0);
 
@@ -2743,11 +2670,12 @@ function tickTimers(){
   const te=document.getElementById('gt-turn');
   let rem=TURN_TIME-Math.floor((now-(G.turnStart||now))/1000);
   if(rem<0)rem=0;
-  if(te){te.textContent='⏳ '+rem;te.classList.toggle('low',rem<=5);}
+  if(te){te.textContent=SCEN?'🎬':'⏳ '+rem;te.classList.toggle('low',!SCEN&&rem<=5);}
   const cp=G.players[G.turn];
   if(!cp)return;
+  if(SCEN)return; // الجولة التعليمية: لا لعب تلقائي عند انتهاء المؤقّت
   // انتهى وقت اللاعب البشري → يُلعب/يُسحب تلقائياً
-  if(rem<=0&&!cp.isBot&&!cp.isElim&&G.phase==='pick'&&!anyOverlayOpen()&&!G._animating&&!G._pick&&(!NET.on||G.turn===NET.myPidx)){
+  if(rem<=0&&!cp.isBot&&!cp.isElim&&G.phase==='pick'&&!anyOverlayOpen()&&!G._animating&&!G._pick){
     if(isStage1()){
       resetTurnTimer();
       humanDraw(Math.random()<0.5?'red':'black');
@@ -2765,7 +2693,7 @@ function tickTimers(){
     execBot();
   }
   // حارس إضافي: لاعب مُقصى ودوره عليه → مرّر الدور
-  if(cp.isElim&&G.phase==='pick'&&!G._animating&&!anyOverlayOpen()&&(!NET.on||G.turn===NET.myPidx)){
+  if(cp.isElim&&G.phase==='pick'&&!G._animating&&!anyOverlayOpen()){
     endTurn();
   }
 }
@@ -2793,9 +2721,9 @@ function startCupGame(i){openCustomReset();TUT_GAME=false;CUP_TIER=i;CLASSIC_TIE
 function startClassicGame(i){openCustomReset();TUT_GAME=false;CLASSIC_TIER=i;CUP_TIER=-1;CFG.bots=3;CFG.level='medium';CFG.levels=null;startGame();}
 
 function startGame(){
-  NET.on=false;
-  TUT_SCRIPT=false;
   clearTimeout(G.botTO);
+  // مباراة عادية (ليست الجولة التعليمية) → صفّر حالة الجولة وأخفِ شريحتها
+  if(!SCEN){SCEN_DONE=false;const sb=document.getElementById('scen-banner');if(sb)sb.style.display='none';}
   const gt=document.querySelector('#s-bot-game .gtitle');
   if(gt)gt.textContent=CUP_TIER>=0?('🏆 المرحلة '+(CUP_TIER+1)+' — لوح '+boardTheme().name):CLASSIC_TIER>=0?('🎴 كلاسيكي — مرحلة '+(CLASSIC_TIER+1)):customOn()?(CUSTOM.design?'🎨 مرحلة مصمَّمة':'🎛️ مرحلة مخصّصة'):'🎴 BVO — ضد البوت';
   const tot=1+CFG.bots;
@@ -2841,26 +2769,18 @@ function humanPlay(idx){
   if(cp.isBot||G.phase!=='pick'||cp.isElim||G._animating||G._pick)return;
   const card=cp.hand[idx];
   if(!card)return;
-  if(TUT_SCRIPT){ const _al=tutAllowedPlayerIdx(); if(_al>=0&&idx!==_al){ if(typeof toast==='function')toast('👆 استعمل الورقة المضيئة'); return; } if(_al>=0){ TUT_PP++; if(TUT_PP>=TUT_PC.length)TUT_SCRIPT=false; } }
-  try{flyCardToCenter(document.querySelectorAll('#hand-row .crd')[idx],card,skinOf(G.turn));}catch(e){}
+  if(SCEN){
+    const a=scenAllowedCard();
+    if(!a||card.label!==a.label||card.color!==a.color){toast('🎓 العب الورقة المضيئة فقط');return;}
+    G._hoverPath=[];RAISED_IDX=-1;if(typeof hideCardInfo==='function')hideCardInfo();
+    G.pend={pidx:G.turn,cardIdx:idx,card};
+    const step=SCENARIO[SCEN.si];
+    if(step&&step.resolve)step.resolve();
+    return;
+  }
   G._hoverPath=[];RAISED_IDX=-1;if(typeof hideCardInfo==='function')hideCardInfo();
   G.pend={pidx:G.turn,cardIdx:idx,card};
   resolveChoice(card,cp);
-}
-/* أنيميشن: طيران الورقة من اليد إلى وسط اللوح */
-function flyCardToCenter(fromEl,card,skin){
-  if(!fromEl)return;
-  const bw=document.getElementById('board-wrap'); if(!bw)return;
-  const r=fromEl.getBoundingClientRect(), br=bw.getBoundingClientRect();
-  if(!r.width)return;
-  const tx=(br.left+br.width/2)-(r.left+r.width/2);
-  const ty=(br.top+br.height/2)-(r.top+r.height/2);
-  const fly=document.createElement('div');
-  fly.className='crd '+(card.color||'');
-  fly.style.cssText='position:fixed;z-index:99990;left:'+r.left+'px;top:'+r.top+'px;width:'+r.width+'px;height:'+r.height+'px;margin:0;pointer-events:none;--tx:'+tx+'px;--ty:'+ty+'px;box-shadow:0 10px 30px rgba(0,0,0,.6);animation:bvoFlyCard .52s cubic-bezier(.4,.85,.35,1) forwards;';
-  fly.innerHTML=cardFaceHTML(card,skin);
-  document.body.appendChild(fly);
-  setTimeout(()=>{ try{fly.remove();}catch(e){} },560);
 }
 
 /* ═══ المرحلة 1: سحب ورقة بلون مُختار ولعبها فوراً ═══ */
@@ -3037,7 +2957,8 @@ function execC(opt,extra){
       const ni=nextActive(pidx);
       if(ni!==pidx&&G.players[ni].hand.length){
         // يملك أوراقاً → احرق ورقة عشوائية + تخطّي دوره
-        const bi=Math.floor(Math.random()*G.players[ni].hand.length);
+        let bi=Math.floor(Math.random()*G.players[ni].hand.length);
+        if(SCEN){const k=G.players[ni].hand.findIndex(c=>c.label==='7');if(k>=0)bi=k;} // الجولة التعليمية: احرق 7 تحديداً
         const burned=G.players[ni].hand[bi];
         G.players=G.players.map((p,i)=>i===ni?{...p,hand:p.hand.filter((_,ci)=>ci!==bi),skipNext:true}:p);
         G.discard=[...G.discard,burned];render();burnFx(ni);setTimeout(endTurn,1000);
@@ -3160,15 +3081,12 @@ function animTo(pidx,dest,done){const from=G.players[pidx].pos;animateMulti([{pi
 ═══════════════════════════════════ */
 function pickSlotOnBoard(slotIds,hint,cb){
   G._pick={slots:new Set(slotIds),cb};
-  if(hint)showPickHint(hint);
+  if(hint)toast(hint);
   render();
 }
-function showPickHint(t){const el=document.getElementById('pick-hint');if(!el)return;el.textContent=t;el.classList.add('show');}
-function hidePickHint(){const el=document.getElementById('pick-hint');if(el)el.classList.remove('show');}
 function onSlotClick(idx){
   if(!G._pick||!G._pick.slots.has(idx))return;
   const cb=G._pick.cb;G._pick=null;
-  hidePickHint();
   render();
   cb(idx);
 }
@@ -3207,6 +3125,7 @@ function doMoveLand(pidx,steps){
         document.getElementById('ov-buy-info').textContent=`السعر: $${sq.price}\nرصيدك: $${G.players[pidx].money.toLocaleString()}\nإيجارها: $${rentOf(sq)}`;
         document.getElementById('ov-buy').classList.add('show');
         if(TUT_GAME)tutOnBuy(sq);
+        if(SCEN)scenBuyGuard(sq);
         render();return;
       } else if(G.players[pidx].isBot){
         if(botBuyD(pidx,sq)){const mb=G.players[pidx].money;G.board=G.board.map(pr=>pr.id===newPos?{...pr,owner:pidx}:pr);G.players=G.players.map((pl,i)=>i===pidx?{...pl,money:pl.money-sq.price}:pl);moneyFx(pidx,mb,G.players[pidx].money);}
@@ -3305,7 +3224,8 @@ function openBuild(free,pidx){
 
 function refreshBuildList(){
   const free=G._bFree, pidx=G._bPidx, cost=free?0:buildCost();
-  const myP=G.board.filter(sq=>sq.type==='property'&&sq.owner===pidx&&sq.buildings<MAX_B&&(free||G.players[pidx].money>=cost));
+  let myP=G.board.filter(sq=>sq.type==='property'&&sq.owner===pidx&&sq.buildings<MAX_B&&(free||G.players[pidx].money>=cost));
+  if(SCEN&&SCEN.buildOnly!=null)myP=myP.filter(sq=>sq.id===SCEN.buildOnly); // الجولة التعليمية: أرض واحدة
   const list=document.getElementById('ov-build-list'); list.innerHTML='';
   if(!myP.length){
     list.innerHTML='<div style="text-align:center;color:#555;padding:14px;font-size:12px">لا توجد أراضٍ متاحة للبناء</div>';
@@ -3322,6 +3242,7 @@ function buildOne(sqId){
   const free=G._bFree, pidx=G._bPidx, cost=free?0:buildCost();
   const sq=G.board.find(s=>s.id===sqId);
   if(!sq||sq.buildings>=MAX_B)return;
+  if(SCEN&&SCEN.buildOnly!=null&&sqId!==SCEN.buildOnly)return; // الجولة التعليمية: أرض واحدة فقط
   if(!free&&G.players[pidx].money<cost)return;
   // المرحلة 7: ورقة 8 أحمر (free) تبني منزلين محميّين دفعة واحدة
   if(free&&isStage7()){
@@ -3337,6 +3258,12 @@ function buildOne(sqId){
     closeOv('ov-build');
     endTurn(); // Red 8 free build → ends turn when closed
   } else {
+    if(SCEN&&SCEN.buildTarget!=null&&G.board.find(s=>s.id===sqId).buildings>=SCEN.buildTarget){
+      // الجولة التعليمية: اكتمل البناءان المطلوبان → أغلق وادعُ للعب 8 أحمر المجاني
+      SCEN.subDone=true;closeOv('ov-build');render();
+      coach('✅ المنزل الثالث مجانًا','أحسنت! بنيت منزلين. الآن العب ورقة «8 أحمر» المضيئة لبناء المنزل الثالث على أرضك 28 مجانًا — كل منزل يرفع الإيجار على خصمك.','b8free');
+      return;
+    }
     refreshBuildList();
     render(); // Normal build → stay open, NO endTurn
   }
@@ -3440,11 +3367,12 @@ function payRent(pidx,amount,creditor){
    TURN
 ═══════════════════════════════════ */
 function endTurn(){
-  if(typeof hidePickHint==='function')hidePickHint();
   G.phase='pick';G.pend=null;
   // Refill hand (لا تطبيق في المرحلة 1 — السحب يدوي كل دور)
   const pidx=G.turn,p=G.players[pidx];
-  if(!isStage1()&&p&&!p.isElim&&p.hand.length===0){
+  if(SCEN){
+    if(p&&!p.isElim&&p.hand.length===0)scenDeal(pidx); // الجولة التعليمية: وزّع التوزيعة المكتوبة التالية
+  } else if(!isStage1()&&p&&!p.isElim&&p.hand.length===0){
     // احسب اتجاه تسلسل اللاعب (تصاعدي/تنازلي) — يُلغى إذا كانت توزيعته السابقة 4 أوراق متطابقة
     G._ws=G._ws||{};G._noComboP=G._noComboP||{};G._sqs=G._sqs||{};
     G._ws[pidx]=G._noComboP[pidx]?0:_ev(G._sqs[pidx]||[]);
@@ -3470,6 +3398,7 @@ function endTurn(){
       if(G.players[next].isElim){G.turn=next;setTimeout(endTurn,400);return;}
     }
   }
+  if(SCEN)scenStepDone(); // الجولة التعليمية: تقدّم خطوة + اعرض شرح الخطوة التالية
   render();scheduleBot();
 }
 
@@ -3499,9 +3428,13 @@ function checkWin(){
     const w=active.length===1?active[0]:G.players.reduce((a,b)=>a.money>b.money?a:b);
     // نظام اللِفِل والانتصارات (للاعب البشري id=0)
     const iWon=(w.id===0);
-    if(iWon){PLAYER.wins++;PLAYER.streak++;if(PLAYER.streak>PLAYER.bestStreak)PLAYER.bestStreak=PLAYER.streak;addXP(50);chBump('win');}
-    else{PLAYER.streak=0;addXP(15);}
-    savePlayer();
+    const _scenWin=!!SCEN; // فوز ضمن الجولة التعليمية
+    if(_scenWin){SCEN=null;SCEN_DONE=false;const _sb=document.getElementById('scen-banner');if(_sb)_sb.style.display='none';}
+    if(!_scenWin){
+      if(iWon){PLAYER.wins++;PLAYER.streak++;if(PLAYER.streak>PLAYER.bestStreak)PLAYER.bestStreak=PLAYER.streak;addXP(50);chBump('win');}
+      else{PLAYER.streak=0;addXP(15);}
+      savePlayer();
+    }
     document.getElementById('res-emoji').textContent=w.emoji;
     document.getElementById('res-name').textContent=w.name;
     document.getElementById('res-money').textContent='$'+w.money.toLocaleString();
@@ -3537,13 +3470,12 @@ function checkWin(){
       CLASSIC_TIER=-1;
     } else { rc.style.display='none'; }
     stopTick();
-    goTo('s-bot-result');
     // نظام الإعارة + الإعلانات البينية (تُستثنى المباراة التدريبية)
     if(!TUT_GAME){
       consumeLoanAfterGame();
       maybeInterstitial(total);
     }
-    return true;
+    goTo('s-bot-result');return true;
   }
   return false;
 }
@@ -3564,6 +3496,7 @@ function execBot(){
   const pidx=G.turn,cp=G.players[pidx];
   if(!cp||!cp.isBot||cp.isElim||G.phase!=='pick')return;
   if(G._animating){G.botTO=setTimeout(execBot,300);return;}
+  if(SCEN){scenBotPlay();return;} // الجولة التعليمية: دور البوت مكتوب
   // المرحلة 1: البوت يسحب لوناً عشوائياً ويلعبه فوراً
   if(isStage1()){
     const color=Math.random()<0.5?'red':'black';
@@ -3578,7 +3511,7 @@ function execBot(){
     return;
   }
   if(!cp.hand.length){endTurn();return;}
-  const ci=TUT_SCRIPT?tutBotCardIdx(cp.hand):botChooseCardIdx(pidx,cp.hand,botLvl(pidx));
+  const ci=botChooseCardIdx(pidx,cp.hand,botLvl(pidx));
   const card=cp.hand[ci];
   G._lastCard={label:card.label,sym:card.sym,color:card.color,suit:card.suit,by:pidx};
   G._playLog=(G._playLog||[]).concat([{label:card.label,sym:card.sym,color:card.color,suit:card.suit,by:pidx}]);
@@ -3722,6 +3655,7 @@ let _envyTO=0;
 function coachEnvy(msg){const now=Date.now();if(now-_envyTO<6000)return;_envyTO=now;toast(msg);}
 function botBuyD(pidx,sq){
   const p=G.players[pidx];if(p.money<sq.price)return false;
+  if(SCEN)return !!SCEN._botBuy; // الجولة التعليمية: قرار الشراء مكتوب
   const lvl=botLvl(pidx);
   // مستحيل/حسود: يشتري دائماً ما دام يبقى لديه احتياطي (لا يُفلس نفسه)
   if(lvlAtLeast(lvl,'impossible'))return (p.money-sq.price)>=Math.min(300,sq.price*0.4);
@@ -3846,7 +3780,6 @@ function hideCardInfo(){document.getElementById('cardinfo').classList.remove('sh
 function tapCard(idx){
   const cp=G.players[G.turn];
   if(!cp||cp.isBot||G.phase!=='pick'||cp.isElim||G._animating||G._pick)return;
-  if(TUT_SCRIPT){ const _al=tutAllowedPlayerIdx(); if(_al>=0&&idx!==_al){ if(typeof toast==='function')toast('👆 استعمل الورقة المضيئة'); return; } }
   if(RAISED_IDX===idx){
     // ضغطة ثانية على نفس الورقة → العب
     RAISED_IDX=-1;hideCardInfo();cardHoverOff();
@@ -3862,85 +3795,7 @@ function tapCard(idx){
   if(hr)Array.from(hr.children).forEach((b,i)=>b.classList.toggle('raised',i===idx));
 }
 
-function render(){renderPlayers();renderBoard();renderHand();renderCenterPile();netAfterRender();}
-
-/* ═══ مزامنة المباراة الجماعية (سلطة اللاعب صاحب الدور) ═══ */
-function netAfterRender(){
-  if(!NET.on)return;
-  if(NET.authority){ netPush(); if(G.turn!==NET.myPidx) NET.authority=false; }
-}
-function netPush(){
-  if(!NET.on||!NET.code)return;
-  clearTimeout(NET._pt);
-  NET._pt=setTimeout(()=>{ if(typeof window.bvoPushState==='function') window.bvoPushState(NET.code, netSerialize()); }, 70);
-}
-function netSerialize(){
-  const g=G;
-  return JSON.stringify({
-    players:g.players, board:g.board, draw:g.draw, discard:g.discard,
-    turn:g.turn, phase:g.phase, pend:g.pend,
-    _sqs:g._sqs, _ws:g._ws, _noComboP:g._noComboP, _playLog:g._playLog,
-    _lastCard:g._lastCard, gameStart:g.gameStart, turnStart:g.turnStart
-  });
-}
-function netApply(str){
-  let o; try{ o=JSON.parse(str); }catch(e){ return; }
-  if(!o||!o.players)return;
-  const oldMoney=(G.players||[]).map(p=>p&&p.money);
-  const wasSynced=NET._synced;
-  clearTimeout(G.botTO);
-  G.players=o.players; G.board=o.board; G.draw=o.draw||[]; G.discard=o.discard||[];
-  G.turn=o.turn||0; G.phase=o.phase||'pick'; G.pend=o.pend||null;
-  G._sqs=o._sqs||{}; G._ws=o._ws||{}; G._noComboP=o._noComboP||{}; G._playLog=o._playLog||[];
-  G._lastCard=o._lastCard||null; G.gameStart=o.gameStart||G.gameStart; G.turnStart=o.turnStart||Date.now();
-  G._animating=false; G._pick=null; G._hoverPath=[]; G.botTO=null;
-  render();
-  // أظهر أنيميشن المال (إيجار/دفعات) لِما يتغيّر مال أي لاعب في دور الخصم
-  if(wasSynced){
-    G.players.forEach((p,i)=>{ if(p&&oldMoney[i]!=null&&p.money!==oldMoney[i]) moneyFx(i,oldMoney[i],p.money); });
-  }
-  NET._synced=true;
-  const alive=G.players.filter(p=>!p.isElim);
-  if(alive.length<=1 && G.players.length>1) netGameOver(alive);
-}
-function netGameOver(alive){
-  if(NET._over)return; NET._over=true;
-  const iWon = alive.length===1 && alive[0].id===NET.myPidx;
-  toast(iWon?'🏆 مبروك! فزت في المباراة الخاصة 🎉':'انتهت المباراة');
-  setTimeout(()=>{ NET.on=false; if(typeof window.bvoLeaveRoom==='function')window.bvoLeaveRoom(); window._roomStarted=false; goTo('s-friends'); frTab('private'); },2600);
-}
-function startNetListen(){
-  if(typeof window.bvoListenState!=='function')return;
-  window.bvoListenState(NET.code,(str)=>{
-    if(!str||NET.authority)return;
-    netApply(str);
-    if(G.turn===NET.myPidx){ NET.authority=true; resetTurnTimer(); }
-  });
-}
-function buildOnlineGame(stage, uids, info){
-  openCustomReset();
-  CLASSIC_TIER=stage; CUP_TIER=-1; TUT_GAME=false;
-  const base=uids.map((uid,i)=>{
-    const pi=info[uid]||{};
-    return {id:i,name:(pi.name||PNAMES[i]||('لاعب'+(i+1))),emoji:(pi.avatar||PEMOJI[i]),color:PCOLORS[i%PCOLORS.length],skin:(pi.skin||'classic'),money:S_MONEY,walletCap:S_CAP,pos:0,laps:0,isBot:false,hand:[],isElim:false,skipNext:false,lives:START_LIVES,lvl:null};
-  });
-  const dealCount=isStage1()?0:4;
-  const r=dealN(base,shuffle(buildDeck()),[],dealCount);
-  G={players:r.players,board:buildBoard(),draw:r.draw,discard:r.discard,turn:0,phase:'pick',pend:null,botTO:null,_hoverPath:[],_bFree:false,_bPidx:0,_sqs:{},_ws:{},_noComboP:{},_playLog:[],gameStart:Date.now(),turnStart:Date.now()};
-  G.players.forEach((p,i)=>{if(p.hand.length>=4&&p.hand.every(c=>c.label===p.hand[0].label))G._noComboP[i]=true;});
-}
-function startOnlineMatch(stage){
-  const room=window.RT_ROOM||{}; const players=room.players||{}; const host=room.host;
-  const uids=Object.keys(players).sort((a,b)=>(a===host?-1:(b===host?1:0)));
-  NET.on=true; NET.code=room.code; NET.uids=uids; NET._over=false; NET._synced=false;
-  NET.myPidx=Math.max(0,uids.indexOf(window.BVO_UID));
-  NET.isHost=(window.BVO_UID===host);
-  NET.authority=false;
-  const gt=document.querySelector('#s-bot-game .gtitle'); if(gt)gt.textContent='🎮 مباراة خاصة — مرحلة '+(stage+1);
-  goTo('s-bot-game'); applySkin(); startNetListen();
-  if(NET.isHost){ buildOnlineGame(stage, uids, players); NET.authority=true; render(); startTick(); }
-  else { startTick(); }
-}
+function render(){renderPlayers();renderBoard();renderHand();renderCenterPile();}
 
 /* ═══ رسم كومة الأوراق الملعوبة في منتصف اللوح ═══
    كل ورقة توضع فوق السابقة، وتدور باتجاه اللاعب الذي لعبها */
@@ -3962,7 +3817,7 @@ function renderCenterPile(){
     const dx=((i*29)%5-2)*5, dy=((i*53)%5-2)*5;
     const newest=i===log.length-1;
     // كل ورقة تُرسم بشكل صاحبها: البشري (by=0) بشكله المُجهَّز، والبوتات دائماً كلاسيكية
-    const sk=skinOf(c.by);
+    const sk=c.by===0?(PLAYER.cardSkin||'classic'):'classic';
     return `<div class="ccard crd ${c.color} csk-${sk}${newest?' cnew':''}" style="transform:translate(-50%,-50%) translate(${dx}px,${dy}px) rotate(${ang}deg);z-index:${i+1}">${cardFaceHTML(c,sk)}</div>`;
   }).join('');
 }
@@ -3973,23 +3828,24 @@ function renderPlayers(){
     const d=document.createElement('div');
     d.id='pcrd-'+i;
     d.className='pcrd'+(i===G.turn&&!p.isElim?' myturn':'')+(p.isElim?' elim':'');
-    if(i===G.turn&&!p.isElim){d.style.setProperty('--pc',pColor(i));d.style.setProperty('--pcbg',PCBG[i]||'transparent');}
+    if(i===G.turn&&!p.isElim){d.style.setProperty('--pc',p.color);d.style.setProperty('--pcbg',PCBG[i]||'transparent');}
     const sqName=G.board[p.pos]?.name||'--';
     const livesTag=livesMode()?`<div class="ph" style="color:#ff6b6b">❤️ ${p.lives}</div>`:'';
-    d.innerHTML=`<div class="pe">${p.emoji}</div><div class="pn">${p.name}</div><div class="pm" id="pm-${i}">$${p.money.toLocaleString()}</div><div class="pos">📍 خانة ${p.pos}</div><div class="pwc">سقف $${p.walletCap.toLocaleString()}</div><div class="ph">🎴${p.hand.length} 🏠${G.board.filter(s=>s.owner===i).length}</div>${livesTag}${p.isElim?'<div class="elim-x">✖</div>':''}`;
+    d.innerHTML=`<div class="pe">${p.emoji}</div><div class="pn">${p.name}</div><div class="pm" id="pm-${i}">${SCEN?'<span dir="ltr" style="unicode-bidi:isolate;font-weight:900"><span style="color:#ffd24a">'+p.walletCap.toLocaleString()+'</span><span style="color:#7c8aa0"> / </span><span id="mon-'+i+'" style="color:#27c93f">'+p.money.toLocaleString()+'</span></span>':'$'+p.money.toLocaleString()}</div><div class="pos">📍 خانة ${p.pos}</div><div class="pwc">${SCEN?'':'سقف $'+p.walletCap.toLocaleString()}</div><div class="ph">🎴${p.hand.length} 🏠${G.board.filter(s=>s.owner===i).length}</div>${livesTag}${p.isElim?'<div class="elim-x">✖</div>':''}`;
     strip.appendChild(d);
   });
 }
 
 /* ═══ أنيميشن المال: تصاعد/تنازل الرقم تدريجياً + شارة عائمة (-أحمر / +أخضر) ═══ */
 function animMoney(pidx,from,to){
-  const el=document.getElementById('pm-'+pidx);
+  const monEl=document.getElementById('mon-'+pidx); // الجولة: عنصر المال (أخضر) منفصل عن السقف
+  const el=monEl||document.getElementById('pm-'+pidx);
   if(!el){return;}
   const dur=700,t0=performance.now();
   function step(now){
     const k=Math.min(1,(now-t0)/dur);
     const val=Math.round(from+(to-from)*k);
-    el.textContent='$'+val.toLocaleString();
+    el.textContent=monEl?val.toLocaleString():'$'+val.toLocaleString();
     if(k<1)requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
@@ -4549,20 +4405,20 @@ function renderBoard(){
     if(!sq)return;
     const R2=p.r, st=p.t||'hex';
     const isSpec=sq.type!=='property';
-    const ownerCol=sq.owner!==null?pColor(sq.owner):null;
+    const ownerCol=sq.owner!==null?G.players[sq.owner]?.color:null;
     const herePs=G.players.filter(pl=>ePos(pl)===idx&&!pl.isElim);
-    const _me=meIdx();const isHuman=G.players[_me]&&ePos(G.players[_me])===idx&&!G.players[_me].isElim;
+    const isHuman=G.players[0]&&ePos(G.players[0])===idx&&!G.players[0].isElim;
     const inPath=G._hoverPath.includes(idx);
     const isDest=G._hoverPath.length>0&&G._hoverPath[G._hoverPath.length-1]===idx;
     // مع التصميم: لون الخانة الأساسي من اختيار المصمّم — ومع الألواح المرسومة: لون محفور من خامة اللوح نفسه
     const baseFill=D?(p.f?p.c:'rgba(0,0,0,.4)'):(bimg?'rgba(6,8,20,0.42)':(T.slotFill||T.inn));
     const specFill=D?'rgba(255,210,80,0.3)':(bimg?'rgba(255,210,80,0.22)':(T.specFill||(T.gold+'22')));
     const fill=isDest?'#22c55e55':inPath?'#22c55e1a':isSpec?specFill:ownerCol?ownerCol+'66':baseFill;
-    const stk=isDest?'#22c55e':inPath?'#44dd77':isHuman?pColor(_me):ownerCol||(D?p.c:(bimg?'rgba(255,230,160,0.55)':(T.slotStroke||T.innStk)));
+    const stk=isDest?'#22c55e':inPath?'#44dd77':isHuman?G.players[0].color:ownerCol||(D?p.c:(bimg?'rgba(255,230,160,0.55)':(T.slotStroke||T.innStk)));
     const stkW=isDest?3.5:inPath?2.5:isHuman?2.5:1.5;
     const pickable=G._pick&&G._pick.slots.has(idx);
     // Outer glow
-    if(isHuman)h+=shapeEl(st,p.x,p.y,R2*1.55,`fill="none" stroke="${pColor(_me)}" stroke-width="2" opacity=".4"`);
+    if(isHuman)h+=shapeEl(st,p.x,p.y,R2*1.55,`fill="none" stroke="${G.players[0].color}" stroke-width="2" opacity=".4"`);
     if(isDest&&!isHuman)h+=shapeEl(st,p.x,p.y,R2*1.55,`fill="none" stroke="#22c55e" stroke-width="3" opacity=".75"`);
     // Main slot (بشكل الخانة المصمَّم: سداسي/دائرة/مربع/معيّن/مثلث/نجمة)
     h+=shapeEl(st,p.x,p.y,R2,`fill="${pickable?'#22ff8826':fill}" stroke="${stk}" stroke-width="${stkW}"`);
@@ -4580,10 +4436,25 @@ function renderBoard(){
     }
     // Square number
     h+=`<text x="${p.x}" y="${p.y+R2*.62}" text-anchor="middle" font-size="${R2*.62}" fill="${isHuman?'#fff':isDest?'#22c55e':isSpec?(T.specText||'#FFD700'):(T.slotText||'#aaa')}" font-weight="bold">${idx===0?'GO':idx}</text>`;
-    // Player tokens
-    herePs.forEach((pl,pi)=>{h+=`<circle cx="${p.x+(pi-herePs.length/2+.5)*R2*.75}" cy="${p.y+R2*1.22}" r="${pl.id===meIdx()?R2*.42:R2*.34}" fill="${pColor(pl.id)}" stroke="${pl.id===meIdx()?'#fff':'#000'}" stroke-width="${pl.id===meIdx()?1.5:1}"/>`;});
+    // (الشخصيات تُرسم في طبقة منفصلة فوق كل الخانات — انظر أسفل الحلقة)
     // طبقة ضغط شفافة فوق الخانة القابلة للاختيار
     if(pickable)h+=shapeEl(st,p.x,p.y,R2*1.05,`fill="transparent" onclick="onSlotClick(${idx})" style="cursor:pointer"`);
+  });
+  // ═══ طبقة الشخصيات فوق كل الخانات — موزّعة على الخانة: الزوايا الأربع أولاً ثم الرأس الأعلى ثم الأسفل ═══
+  // ترتيب التوزيع: UL ، UR ، LL ، LR ، الأعلى ، الأسفل (سداسي حول مركز الخانة)
+  const TOK_OFF=[[-0.866,-0.5],[0.866,-0.5],[-0.866,0.5],[0.866,0.5],[0,-1],[0,1]];
+  const bySlot={};
+  G.players.forEach(pl=>{ if(pl.isElim)return; const s=ePos(pl); (bySlot[s]=bySlot[s]||[]).push(pl); });
+  Object.keys(bySlot).forEach(s=>{
+    const p=pos[s]; if(!p)return; const R2=p.r;
+    const arr=bySlot[s];
+    const g=R2*0.9; // نصف قطر ترتيب الشخصيات حول مركز الخانة
+    arr.forEach((pl,pi)=>{
+      let ox=0, oy=0;
+      if(arr.length>1){ const o=TOK_OFF[pi%6]; ox=o[0]*g; oy=o[1]*g; } // أكثر من شخصية → ترتيب سداسي
+      const rad=pl.id===0?R2*.42:R2*.36;
+      h+=`<circle cx="${(p.x+ox).toFixed(1)}" cy="${(p.y+oy).toFixed(1)}" r="${rad.toFixed(1)}" fill="${pl.color}" stroke="${pl.id===0?'#fff':'#000'}" stroke-width="${pl.id===0?1.6:1.1}"/>`;
+    });
   });
   svg.innerHTML=h;
 }
@@ -4598,15 +4469,21 @@ function renderHand(){
   if(typeof hideCardInfo==='function')hideCardInfo();
   if(typeof RAISED_IDX!=='undefined')RAISED_IDX=-1;
   if(!cp||cp.isElim){lbl.textContent='انتظر...';return;}
-  const isMe=!cp.isBot&&G.turn===meIdx();
+  const isMe=!cp.isBot&&G.turn===0;
   // ليس دوري (بوت/انتظار) → تأكّد من إخفاء نافذة الفائدة
   if(!isMe||G.phase!=='pick'){if(typeof hideCardInfo==='function')hideCardInfo();}
   if(G._pick){lbl.textContent='👆 اختر خانة مضيئة على اللوحة';hr.innerHTML='<div class="no-crd">👆 اختر من اللوحة</div>';return;}
   if(G._animating){lbl.textContent='🚶 جارٍ التحرك...';hr.innerHTML='<div class="no-crd">🚶 ...</div>';return;}
+  if(SCEN_DONE){
+    lbl.textContent='🎉 انتهت الجولة التعليمية';
+    hr.innerHTML='<button onclick="goTo(\'s-main\')" style="height:96px;padding:0 16px;background:#1e293b;border:2px solid #38bdf8;border-radius:12px;color:#fff;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit">🏠 القائمة</button><button onclick="openBotSetup()" style="height:96px;padding:0 16px;background:linear-gradient(135deg,#16a34a,#22c55e);border:none;border-radius:12px;color:#fff;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;margin-right:8px">🚀 مباراة حقيقية</button>';
+    return;
+  }
   if(isMe&&G.phase==='pick'){
-    lbl.textContent=`دورك — $${cp.money.toLocaleString()} | سقف $${cp.walletCap.toLocaleString()} | 📍 ${cp.pos}`;
-    const myP=G.board.filter(sq=>sq.type==='property'&&sq.owner===meIdx()&&sq.buildings<MAX_B);
-    if(myP.length&&cp.money>=buildCost()&&!isStage6()){bb.style.display='block';bb.textContent='🏗️ ابنِ ('+buildCost()+'$)';} // المرحلة 6: لا بناء عادي
+    if(SCEN){lbl.innerHTML=`<span dir="ltr" style="unicode-bidi:isolate;font-weight:900">💰 <span style="color:#ffd24a">${cp.walletCap.toLocaleString()}</span> / <span style="color:#27c93f">${cp.money.toLocaleString()}</span></span>  ·  📍 ${cp.pos}`;}
+    else{lbl.textContent=`دورك — $${cp.money.toLocaleString()} | سقف $${cp.walletCap.toLocaleString()} | 📍 ${cp.pos}`;}
+    const myP=G.board.filter(sq=>sq.type==='property'&&sq.owner===0&&sq.buildings<MAX_B);
+    if(!SCEN&&myP.length&&cp.money>=buildCost()&&!isStage6()){bb.style.display='block';bb.textContent='🏗️ ابنِ ('+buildCost()+'$)';} // المرحلة 6: لا بناء عادي
     // المرحلة 1: زرّا سحب (أحمر/أسود) بدل عرض اليد
     if(isStage1()){
       lbl.textContent=`دورك — اسحب ورقة | $${cp.money.toLocaleString()} | 📍 ${cp.pos}`;
@@ -4617,20 +4494,27 @@ function renderHand(){
     }
     if(!cp.hand.length){hr.innerHTML='<div class="no-crd">🎴 جارٍ التوزيع...</div>';return;}
     RAISED_IDX=-1;hideCardInfo(); // إعادة ضبط الرفع عند إعادة رسم اليد
+    const allow=SCEN?scenAllowedCard():null;
     cp.hand.forEach((c,i)=>{
       const b=document.createElement('button');b.className='crd '+c.color;
       b.innerHTML=cardFaceHTML(c);
-      if(IS_TOUCH){
-        // الجوال: ضغطة ترفع وتُظهر المسار+الفائدة، ضغطة ثانية تلعب
-        b.onclick=()=>tapCard(i);
+      const locked=allow&&!(c.label===allow.label&&c.color===allow.color);
+      if(locked){
+        // الجولة التعليمية: ورقة غير مسموح بها → معتّمة ومعطّلة
+        b.style.opacity='.3';b.style.filter='grayscale(.85)';b.style.pointerEvents='none';
       } else {
-        // PC: تمرير الماوس يُظهر المسار، والبقاء ثانيتين يُظهر فائدة الورقة
-        let infoTO=null;
-        b.onclick=()=>humanPlay(i);
-        b.onmouseenter=()=>{cardHover(i);infoTO=setTimeout(()=>showCardInfo(c),1000);};
-        b.onmouseleave=()=>{cardHoverOff();if(infoTO)clearTimeout(infoTO);hideCardInfo();};
+        if(allow){b.style.boxShadow='0 0 0 3px #ffd700,0 0 16px 2px rgba(255,215,0,.8)';b.style.transform='translateY(-4px)';}
+        if(IS_TOUCH){
+          // الجوال: ضغطة ترفع وتُظهر المسار+الفائدة، ضغطة ثانية تلعب
+          b.onclick=()=>tapCard(i);
+        } else {
+          // PC: تمرير الماوس يُظهر المسار، والبقاء ثانيتين يُظهر فائدة الورقة
+          let infoTO=null;
+          b.onclick=()=>humanPlay(i);
+          b.onmouseenter=()=>{cardHover(i);infoTO=setTimeout(()=>showCardInfo(c),1000);};
+          b.onmouseleave=()=>{cardHoverOff();if(infoTO)clearTimeout(infoTO);hideCardInfo();};
+        }
       }
-      if(TUT_SCRIPT){ const _al=tutAllowedPlayerIdx(); if(i!==_al){ b.style.opacity='0.3'; b.style.filter='grayscale(.7)'; } else { b.style.boxShadow='0 0 0 3px #ffd700, 0 0 16px rgba(255,215,0,.75)'; } }
       hr.appendChild(b);
     });
     if(TUT_GAME)tutOnMyTurn(cp); // نصيحة المدرّب عند دورك
@@ -4646,27 +4530,6 @@ function renderHand(){
    خطوات شرح (نوافذ) ثم مباراة تدريبية حقيقية ضد بوت واحد
 ═══════════════════════════════════════════════════════ */
 let TUT_I=0, TUT_ON=false;
-/* ═══ المرحلة 1: محرّك التدريب المكتوب (scripted) ═══ */
-let TUT_SCRIPT=false, TUT_PC=[], TUT_BC=[], TUT_PP=0, TUT_BP=0;
-function tutCard(label,color){
-  const STEPS={A:1,2:2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,J:11,Q:12,K:0};
-  const BLK_STEPS={A:1,2:-2,3:3,4:4,5:5,6:6,7:7,8:8,9:9,10:10,J:0,Q:12,K:0};
-  const r=color==='red'?(Math.random()<0.5?{n:'هاص',s:'♥'}:{n:'دبمن',s:'♦'}):(Math.random()<0.5?{n:'سبيت',s:'♠'}:{n:'شيريا',s:'♣'});
-  return {suit:r.n,sym:r.s,color:color,label:label,steps:color==='red'?STEPS[label]:BLK_STEPS[label]};
-}
-function tutAllowedPlayerIdx(){
-  if(!TUT_SCRIPT)return -1;
-  const req=TUT_PC[TUT_PP]; if(!req){TUT_SCRIPT=false;return -1;}
-  const cp=G.players[0]; if(!cp||!cp.hand)return -1;
-  return cp.hand.findIndex(c=>c.label===req.label&&c.color===req.color);
-}
-function tutBotCardIdx(hand){
-  const req=TUT_BC[TUT_BP];
-  let idx=req?hand.findIndex(c=>c.label===req.label&&c.color===req.color):-1;
-  if(idx<0)idx=0;
-  TUT_BP++;
-  return idx;
-}
 const TUT_STEPS=[
   {t:'🎮 أهلاً بك في BVO',x:'mid',m:'BVO لعبة لوحية استراتيجية تُلعب بأوراق اللعب 🎴\n\nتتحرّك حول اللوح، تشتري الأراضي، وتجمع المال من خصومك.\n\nالهدف: كوّن إمبراطوريتك وكن آخر لاعب يبقى في اللعبة!\n\nسنشرح لك كل شيء خطوة بخطوة 👇'},
   {t:'🎴 اللعب بالأوراق',x:'mid',m:'في يدك 4 أوراق. عند دورك تختار ورقة وتلعبها.\n\n• رقم الورقة = عدد خطوات تحرّكك.\n  مثال: ورقة 7 ← تتحرّك 7 خانات للأمام.'},
@@ -4695,39 +4558,27 @@ function startTutorial(){TUT_I=0;TUT_ON=true;goTo('s-main');showTutStep();}
 function startTutorialGame(){
   document.getElementById('tut-layer').classList.remove('show');
   TUT_ON=false;tutMarkDone();
+  // مباراة تدريبية موجّهة: بوت واحد سهل، طور عادي
   CUP_TIER=-1;CLASSIC_TIER=-1;CFG.bots=1;CFG.level='easy';CFG.levels=null;
   TUT_GAME=true;TUT_FLAGS={};
   startGame();
-  // ═══ سيناريو مكتوب (المرحلة 1) — التوزيعة الأولى ═══
-  TUT_PP=0; TUT_BP=0;
-  TUT_PC=[
-    {label:'A',color:'black',say:'دورك! استعمل الورقة المضيئة «A سوداء». فائدتها: تحرق ورقة الخصم التالي وتتخطّى دوره. (اضغط الورقة المضيئة فقط)'},
-    {label:'2',color:'black',say:'الآن استعمل «2 سوداء» — ترجعك خطوتين للوراء.'},
-    {label:'A',color:'red',say:'استعمل «A حمراء» — تختار: ترفع سقف محفظتك +750$ وتحصل على +500$.'},
-    {label:'5',color:'red',say:'استعمل «5 حمراء» — تتحرّك 5 خطوات.'}
-  ];
-  TUT_BC=[
-    {label:'5',color:'red'},{label:'Q',color:'red'},{label:'J',color:'red'},{label:'5',color:'red'}
-  ];
-  if(G&&G.players[0]&&G.players[1]){
-    G.players[0].hand=TUT_PC.map(c=>tutCard(c.label,c.color));
-    G.players[1].hand=TUT_BC.map(c=>tutCard(c.label,c.color));
-  }
-  TUT_SCRIPT=true;
-  render();
-  setTimeout(()=>coach('🎓 تدريب موجّه خطوة بخطوة','سأرشدك! في كل دور، استعمل فقط الورقة **المضيئة** — الأوراق الأخرى مقفلة مؤقتاً. 👇'),500);
+  setTimeout(()=>coach('🎓 مباراة تدريبية موجّهة','سألعب معك خطوة بخطوة!\n\nسأظهر لك نصائح أثناء اللعب: متى تلعب ورقة، متى تشتري أرضاً، ومتى تبني.\n\nدورك الآن — انظر للأسفل إلى أوراقك الأربع. 👇'),500);
 }
 /* نافذة المدرّب: عنوان + نص، تُغلق بزر «فهمت». once=مفتاح لمنع التكرار */
 function coach(title,text,once){
   if(once){if(TUT_FLAGS[once])return; TUT_FLAGS[once]=true;}
+  const ok=document.getElementById('coach-ok');if(ok)ok.textContent='فهمت ✓';
   document.getElementById('coach-title').innerHTML=title;
   document.getElementById('coach-text').textContent=text;
   document.getElementById('coach-box').classList.add('show');
 }
-function coachClose(){document.getElementById('coach-box').classList.remove('show');}
+function coachClose(){
+  document.getElementById('coach-box').classList.remove('show');
+  // الجولة التعليمية: إن كان البوت ينتظر «فهمت» → حرّكه الآن
+  if(SCEN&&SCEN._pendingBot){const fn=SCEN._pendingBot;SCEN._pendingBot=null;fn();}
+}
 /* يُستدعى من renderHand عند بداية دور اللاعب البشري في المباراة التدريبية */
 function tutOnMyTurn(cp){
-  if(TUT_SCRIPT){ const req=TUT_PC[TUT_PP]; if(req&&req.say)coach('🎓 خطوة التدريب',req.say); return; }
   if(!TUT_GAME||!cp||!cp.hand||!cp.hand.length)return;
   // نصيحة أول دور: اشرح الورقة الأعلى قيمة
   if(!TUT_FLAGS.firstplay){
@@ -4760,283 +4611,282 @@ function endTutorial(){
 // عند إنهاء أي خطوة، احفظ أنه شاهد التدريب
 function tutMarkDone(){try{localStorage.setItem('bvo_tut_done','1');}catch(e){}}
 
+/* ═══════════════════════════════════════════════════════
+   الجولة التعليمية المكتوبة (SCRIPTED TUTORIAL / SCENARIO)
+   مباراة موجّهة خطوة بخطوة: أوراق محددة لك وللبوت، قفل على
+   ورقة واحدة، إجراءات مفروضة (شراء/بناء/خيار)، وشرح كل خطوة.
+   تتدخّل في المحرّك عبر حارس if(SCEN) في نقاط قليلة فقط.
+═══════════════════════════════════════════════════════ */
+/* بناء ورقة بقيمة/لون محدّدين (نفس خطوات المحرّك في buildDeck) */
+function scenCard(label,color){
+  const RS={A:1,'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:11,Q:12,K:0};
+  const BS={A:1,'2':-2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,J:0,Q:12,K:0};
+  const su=color==='red'?{n:'هاص',s:'♥'}:{n:'سبيت',s:'♠'};
+  return {suit:su.n,sym:su.s,color,label,steps:color==='red'?RS[label]:BS[label]};
+}
+/* تعريف السيناريو: التوزيعتان + الخطوات بالترتيب */
+function buildScenario(){
+  const C=scenCard;
+  const deals={
+    0:[ [C('A','black'),C('A','red'),C('2','black'),C('5','red')],
+        [C('3','black'),C('8','red'),C('Q','black'),C('9','black')],
+        [C('J','black'),C('K','red'),C('8','red'),C('K','black')] ],
+    1:[ [C('7','red'),C('Q','red'),C('J','red'),C('5','red')],
+        [C('A','red'),C('Q','red'),C('J','black'),C('5','black')],
+        [C('4','black'),C('5','black'),C('5','black')] ]
+  };
+  const steps=[
+    /* ===== التوزيعة 1 ===== */
+    {who:'me',card:C('A','black'),banner:'🃏 دورك — العب «A أسود» المضيئة',
+     coach:['🃏 A أسود — حرق وتخطٍّ','A السوداء تحرق ورقة من خصمك وتُلغي دوره القادم.\n\nاضغط الورقة المضيئة: ستحرق ورقة «7 أحمر» من البوت ويُخطّى دوره — فيعود الدور إليك فورًا!'],
+     resolve:()=>execC(1)},
+    {who:'me',card:C('2','black'),buy:'force',banner:'🛒 العب «2 أسود» ثم اشترِ الأرض 28',
+     coach:['🔙 2 أسود — رجوع خطوتين','تُرجعك خطوتين للوراء: من الخانة 0 إلى 28.\n\nستقف على أرض حرّة — سنجبرك على شرائها لتصبح ملكك ويدفع لك خصومك إيجارًا.'],
+     resolve:()=>execC(0)},
+    {who:'bot',card:C('Q','red'),banner:'🤖 دور البوت — يلعب «Q أحمر»',
+     coach:['♛ Q أحمر — تحرّك 12','البوت يتحرّك 12 ويقف على الأرض 12 — لكنه لن يشتريها هذه المرة.'],
+     bot:()=>scenBotMove(12,false)},
+    {who:'me',card:C('A','red'),banner:'💰 العب «A أحمر» — ارفع سقف المحفظة',
+     coach:['🅰️ A أحمر — المحفظة','الحد الأقصى لمحفظتك الآن 5000. لعب «A أحمر» يرفعه +750 (يصبح 5750) ويمنحك +500$.\n\nاضغط زر «ارفع السقف».'],
+     resolve:()=>scenChoice('🅰️ A ♥/♦','ارفع سقف محفظتك +750$ واحصل على +500$',[{t:'💰 ارفع السقف +750$ (و+500$)',c:'ob',fn:()=>execC(1)}])},
+    {who:'bot',card:C('J','red'),banner:'🤖 دور البوت — يلعب «J أحمر»',
+     coach:['♨ J أحمر — تحرّك 11','البوت يتحرّك 11 ويقف على الأرض 23 — وهذه المرة يشتريها.'],
+     bot:()=>scenBotMove(11,true)},
+    {who:'me',card:C('5','red'),buy:'skip',banner:'🏁 العب «5 أحمر» — أكمِل لفّة',
+     coach:['5️⃣ 5 أحمر — تحرّك 5','أنت على الخانة 28، تتحرّك 5 وتعبر نقطة البداية — تُكمل لفّة كاملة وتحصل على مكافأة 2000$!\n\n(لن نشتري الأرض 3 الآن — اضغط «تجاوز»).'],
+     resolve:()=>execC(0)},
+    {who:'bot',card:C('5','red'),banner:'🤖 دور البوت — يلعب «5 أحمر»',
+     coach:['💸 إيجار على أرضك!','البوت يتحرّك 5 ويقف على أرضك 28 — فيُجبر على دفع إيجار لك! هكذا تربح من أراضيك.'],
+     bot:()=>scenBotMove(5,false)},
+    /* ===== التوزيعة 2 ===== */
+    {who:'me',card:C('3','black'),banner:'🎯 العب «3 أسود» — حرّك البوت',
+     coach:['3️⃣ 3 أسود — حرّك لاعبًا 3','البوت على 28 وقريب من مكافأة اللفّة. حرّكه 3 خطوات (28→1) بتحريكٍ إجباري فلا ينال المكافأة!\n\nملاحظة: تستطيع فعل المثل بورقة «5 أسود».'],
+     resolve:()=>execC(0,{target:1})},
+    {who:'bot',card:C('5','black'),banner:'🤖 دور البوت — يلعب «5 أسود»',
+     coach:['5️⃣ 5 أسود — يحرّكك','البوت استعمل «5 أسود» ليحرّكك أنت 5 خطوات بدل أن يتحرّك هو.'],
+     bot:()=>scenForceMove(0,5)},
+    {who:'me',card:C('8','red'),force:'build8',banner:'🏗️ ابنِ منزلين على 28 ثم العب «8 أحمر»',
+     coach:['🏗️ البناء + 8 أحمر','أولًا ابنِ منزلين على أرضك 28 (200$ للمنزل — اضغط + مرتين ثم إغلاق). بعدها العب «8 أحمر» لبناء منزل ثالث مجانًا!\n\nكل منزل يرفع الإيجار على خصمك.'],
+     resolve:()=>execC(1)},
+    {who:'bot',card:C('J','black'),banner:'🤖 دور البوت — يبني ثم يلعب «J أسود»',
+     coach:['♟ J أسود — تبديل المواقع','البوت بنى منزلًا على أرضه 23، ثم لعب «J أسود» فبادل موقعك بموقعه على اللوح!'],
+     bot:()=>scenBotBuildThenSwap(23)},
+    {who:'me',card:C('9','black'),banner:'💥 العب «9 أسود» — اهدم مبنى البوت',
+     coach:['9️⃣ 9 أسود — اهدم منزلًا','اهدم منزلًا من أرض البوت 23 لتقليل الإيجار الذي يجبيه من اللاعبين.'],
+     resolve:()=>scenChoice('9️⃣ 9 ♠/♣','اهدم منزلًا من أرض البوت 23',[{t:'💥 اهدم منزلًا على الأرض 23',c:'or',fn:()=>execC(1,{target:23})}])},
+    {who:'bot',card:C('Q','red'),banner:'🤖 دور البوت — يلعب «Q أحمر»',
+     coach:['♛ Q أحمر مقابل Q أسود','«Q أحمر» تحرّك 12 فقط. أما «Q أسود» (التي بيدك) فتنقل خصمًا إلى أرضك ليدفع الإيجار — استعملها الآن!'],
+     bot:()=>scenBotMove(12,false)},
+    {who:'me',card:C('Q','black'),banner:'♛ العب «Q أسود» — انقل البوت لأرضك',
+     coach:['♛ Q أسود — الحيلة الكبرى','انقل البوت إلى أرضك 28 (فيها 3 منازل) — فيُجبر على دفع إيجار ضخم لك! قد يُضطر لبيع أرضه.'],
+     resolve:()=>scenChoice('♛ Q ♠/♣','انقل البوت إلى أرضك 28 ليدفع الإيجار',[{t:'🏠 انقل البوت إلى أرضك 28',c:'ob',fn:()=>execC(1,{target:1,dest:28})}])},
+    {who:'bot',card:C('A','red'),banner:'🤖 دور البوت — يلعب «A أحمر»',
+     coach:['🅰️ A أحمر','البوت يلعب A أحمر ويتحرّك خطوة فيصل إلى الخانة 29 — وهو الآن قريب جدًا من إكمال لفّة!'],
+     bot:()=>scenBotMove(1,false)},
+    /* ===== التوزيعة 3 (K أحمر/أسود + J أسود + الفوز) ===== */
+    {who:'me',card:C('J','black'),banner:'♟ العب «J أسود» — بادل موقعك بالبوت',
+     coach:['♟ J أسود — تبديل المواقع','البوت على الخانة 29 وعلى وشك إكمال لفّة وأخذ المكافأة! بادل موقعك بموقعه بـ«J أسود» فيرجع للخلف ويخسر تقدّمه.\n\n💡 ملاحظة مهمّة: لو كنت واقفًا على أرضٍ تملكها ثم بادلت موقعك بخصم، سينتقل هو إلى أرضك فيدفع لك الإيجار!'],
+     resolve:()=>scenChoice('♟ J ♠/♣','بادل موقعك بموقع البوت',[{t:'🔄 بادل المواقع مع البوت',c:'ob',fn:()=>execC(0,{t1:0,t2:1})}])},
+    {who:'bot',card:C('4','black'),banner:'🤖 دور البوت — يلعب «4 أسود»',
+     coach:['↩️ تعطّل البوت','البوت تحرّك ووقف على خانة آمنة — لقد أبعدتَه عن إكمال اللفّة!'],
+     bot:()=>scenBotMove(4,false)},
+    {who:'me',card:C('K','red'),banner:'👑 العب «K أحمر» — خذ الأرض 29 مجانًا',
+     coach:['👑 K أحمر — أرض مجانية','«K أحمر» تمنحك أي أرض حرّة مجانًا (بلا دفع ثمنها)! أنت الآن على الخانة 29 — خذها لتصبح ملكك.'],
+     resolve:()=>scenChoice('👑 K ♥/♦','خذ الأرض 29 مجانًا',[{t:'🏠 خذ الأرض 29 مجانًا',c:'ob',fn:()=>execC(0,{dest:29})}])},
+    {who:'bot',card:C('5','black'),banner:'🤖 دور البوت — يلعب «5 أسود»',
+     coach:['🤖 دور البوت','البوت يتحرّك إلى خانة آمنة. استعدّ لتطوير أرضك!'],
+     bot:()=>scenBotMove(5,false)},
+    {who:'me',card:C('8','red'),force:'build8',buildLand:29,buildCount:4,banner:'🏗️ طوّر الأرض 29 لأعلى مستوى (5 منازل)',
+     coach:['🏗️ طوّر أرضك 29','ابنِ 4 منازل على الأرض 29 (200$ للمنزل — اضغط + أربع مرات ثم إغلاق)، ثم العب «8 أحمر» لبناء المنزل الخامس مجانًا.\n\n5 منازل = أعلى إيجار ممكن!'],
+     resolve:()=>execC(1)},
+    {who:'bot',card:C('5','black'),banner:'🤖 دور البوت — يلعب «5 أسود»',
+     coach:['🤖 آخر تحرّك للبوت','البوت يتحرّك مرّة أخيرة قبل أن تُسدّد الضربة القاضية!'],
+     bot:()=>scenBotMove(5,false)},
+    {who:'me',card:C('K','black'),banner:'👑 العب «K أسود» — انقل البوت إلى 29 لتفوز',
+     coach:['👑 K أسود — الضربة القاضية','«K أسود» تنقل أي لاعب إلى أي خانة. انقل البوت إلى أرضك 29 (5 منازل) — سيُجبر على دفع إيجار ضخم لا يقدر عليه فيُفلس… وتفوز! 🏆'],
+     resolve:()=>scenChoice('👑 K ♠/♣','انقل البوت إلى أرضك 29 (5 منازل)',[{t:'🎯 انقل البوت إلى الأرض 29',c:'or',fn:()=>execC(0,{target:1,dest:29})}])},
+  ];
+  return {deals,steps};
+}
+/* تشغيل الجولة التعليمية */
+function startScenario(){
+  openCustomReset();TUT_GAME=false;CUP_TIER=-1;CLASSIC_TIER=-1;TUT_FLAGS={};
+  CFG.bots=1;CFG.level='easy';CFG.levels=null;
+  const sc=buildScenario();
+  SCENARIO=sc.steps;
+  SCEN={si:0,deals:sc.deals,dealt:{0:0,1:0},_botBuy:false,buildOnly:null,buildTarget:null,subDone:false};
+  SCEN_DONE=false;
+  startGame();
+  // استبدل التوزيعة العشوائية بالتوزيعة المكتوبة 1 (الجميع يبدأ من الخانة 0)
+  scenDeal(0);scenDeal(1);
+  G.turn=0;G.phase='pick';resetTurnTimer();
+  render();
+  scenEnter(SCENARIO[0]);
+}
+/* وزّع التوزيعة المكتوبة التالية للاعب pidx */
+function scenDeal(pidx){
+  if(!SCEN)return false;
+  const idx=SCEN.dealt[pidx];
+  const hand=SCEN.deals[pidx]&&SCEN.deals[pidx][idx];
+  if(!hand)return false;
+  SCEN.dealt[pidx]++;
+  G.players=G.players.map((p,i)=>i===pidx?{...p,hand:hand.map(c=>({...c}))}:p);
+  return true;
+}
+/* الورقة الوحيدة المسموح للّاعب لعبها في الخطوة الحالية */
+function scenAllowedCard(){
+  if(!SCEN)return null;
+  const s=SCENARIO[SCEN.si];
+  if(!s||s.who!=='me')return null;
+  if(s.force==='build8'&&!SCEN.subDone)return {label:'__none__',color:''}; // اقفل الكل حتى يكتمل البناء
+  return s.card;
+}
+/* الشريحة التعليمية فوق اللوح */
+function scenBanner(html){
+  const b=document.getElementById('scen-banner');if(!b)return;
+  if(html){b.innerHTML=html;b.style.display='block';}else{b.style.display='none';}
+}
+/* نافذة خيار بزرٍّ واحد فقط (إجبار الخيار) */
+function scenChoice(t,s,opts){showChoice(t,s,opts);}
+/* الدخول إلى خطوة: شريحة + شرح + (إن كانت خطوة بناء) افتح نافذة البناء */
+function scenEnter(step){
+  if(!step){scenFinish();return;}
+  scenBanner(step.banner||'');
+  if(step.who==='me'){
+    if(step.coach)coach(step.coach[0],step.coach[1]);
+    if(step.force==='build8')setTimeout(()=>scenStartBuild(step.buildLand||28,step.buildCount||2),450);
+  }
+  // خطوات البوت: يُعرض الشرح بعد وضع الورقة (في scenBotPlay) والبوت ينتظر «فهمت»
+}
+/* انتهت خطوة (يُستدعى من endTurn): تقدّم للخطوة التالية */
+function scenStepDone(){
+  if(!SCEN)return;
+  SCEN.si++;
+  const nx=SCENARIO[SCEN.si];
+  if(!nx){scenFinish();return;}
+  scenEnter(nx);
+}
+/* حارس نافذة الشراء: إجبار الشراء أو إجبار التجاوز حسب الخطوة */
+function scenBuyGuard(sq){
+  const step=SCENARIO[SCEN.si];if(!step)return;
+  const yes=document.getElementById('buy-yes'),no=document.getElementById('buy-no');
+  if(yes){yes.disabled=false;yes.style.opacity='1';}
+  if(no){no.disabled=false;no.style.opacity='1';}
+  if(step.buy==='force'){
+    if(no){no.disabled=true;no.style.opacity='.3';}
+    coach('🛒 اشترِ هذه الأرض','هذه أرض حرّة! اضغط «اشتري» لتملّكها — كل خصم يقف عليها يدفع لك إيجارًا. (لا يمكنك تجاوزها الآن).','buyf'+SCEN.si);
+  } else if(step.buy==='skip'){
+    if(yes){yes.disabled=true;yes.style.opacity='.3';}
+  }
+}
+/* بدء خطوة البناء (8 أحمر): منازل عادية على أرض محددة ثم منزل مجاني */
+function scenStartBuild(land,count){
+  const sq=G.board.find(s=>s.id===land);
+  SCEN.buildOnly=land;SCEN.subDone=false;
+  SCEN.buildTarget=(sq?sq.buildings:0)+count;
+  openBuild(false,0);
+}
+/* دور البوت المكتوب: العب الورقة المحددة ثم نفّذ أثرها */
+function scenBotPlay(){
+  const step=SCENARIO[SCEN.si],pidx=G.turn;
+  if(!step||step.who!=='bot'){endTurn();return;}
+  const ci=G.players[pidx].hand.findIndex(c=>c.label===step.card.label&&c.color===step.card.color);
+  const card=ci>=0?G.players[pidx].hand[ci]:scenCard(step.card.label,step.card.color);
+  if(ci>=0)G.players=G.players.map((p,k)=>k===pidx?{...p,hand:p.hand.filter((_,j)=>j!==ci)}:p);
+  G._lastCard={label:card.label,sym:card.sym,color:card.color,suit:card.suit,by:pidx};
+  G._playLog=(G._playLog||[]).concat([{label:card.label,sym:card.sym,color:card.color,suit:card.suit,by:pidx}]);
+  if(G._playLog.length>12)G._playLog=G._playLog.slice(-12);
+  G.discard=[...G.discard,card];
+  render();
+  // وضع البوت ورقته → اعرض الشرح وانتظر ضغط «فهمت» قبل أن يتحرّك البوت
+  SCEN._pendingBot=()=>{ if(step.bot)step.bot(); else endTurn(); };
+  if(step.coach)coach(step.coach[0],step.coach[1]);
+}
+/* البوت يتحرّك بعدد خطوات مع قرار شراء مكتوب (يعيد استخدام doMove/doMoveLand) */
+function scenBotMove(steps,buy){SCEN._botBuy=!!buy;doMove(G.turn,steps);}
+/* البوت يحرّك لاعباً (منح الخطوات) — بلا مكافأة لفّة */
+function scenForceMove(targetIdx,steps){animForced(targetIdx,steps,()=>{const b=checkForcedLand(targetIdx);if(!b)endTurn();});}
+/* البوت يبني على أرضه ثم يبادل موقعه بموقع اللاعب (J أسود) */
+function scenBotBuildThenSwap(landId){
+  const pidx=G.turn;
+  G.board=G.board.map(s=>s.id===landId?{...s,buildings:Math.min(MAX_B,s.buildings+1)}:s);
+  G.players=G.players.map((p,i)=>i===pidx?{...p,money:Math.max(0,p.money-buildCost())}:p);
+  render();
+  setTimeout(()=>{
+    const t1=0,t2=pidx,p1=G.players[t1].pos,p2=G.players[t2].pos;
+    animateMulti([{pidx:t1,path:buildPath(p1,shortestDelta(p1,p2))},{pidx:t2,path:buildPath(p2,shortestDelta(p2,p1))}],()=>{
+      G.players=G.players.map((p,i)=>{if(i===t1)return{...p,pos:p2};if(i===t2)return{...p,pos:p1};return p;});
+      checkForcedLand(t1);checkForcedLand(t2);endTurn();
+    });
+  },750);
+}
+/* نهاية الجولة: تلخيص + شرح الأوراق غير الملعوبة (K أحمر/أسود، J أسود) */
+function scenFinish(){
+  SCEN=null;SCEN_DONE=true;clearTimeout(G.botTO);
+  scenBanner('🎉 أحسنت! أتممت الجولة التعليمية بنجاح');
+  render();
+  coach('🎉 أتممت الجولة التعليمية!','تعلّمت: A أسود (حرق وتخطٍّ)، شراء الأراضي، A أحمر (رفع سقف المحفظة +750 و+500$)، إكمال اللفّة (+2000$)، البناء و«8 أحمر» (بناء مجاني)، «9 أسود» (هدم منزل الخصم)، و«Q أسود» (نقل الخصم إلى أرضك ليدفع إيجارًا).\n\n✨ أوراق أخرى مهمّة:\n• K أحمر: خذ أرضًا حرّة مجانًا.\n• K أسود: انقل أي لاعب (أو نفسك) إلى أي خانة تريد.\n• J أسود: بادل موقعك بموقع خصم على اللوح.\n\nأنت جاهز الآن — جرّب مباراة حقيقية! 🎉');
+}
+
 /* ═══════════════════════════════════
    INIT — تحميل المحفظة + التحديات + روابط الجلسات
 ═══════════════════════════════════ */
-loadPlayer();refreshTop();loadCh();parseSessionHash();
+loadLang();loadPlayer();refreshTop();loadCh();parseSessionHash();applyLang();
 </script>
-<!-- ════════════════════════════════════════════════
-     Firebase Authentication — نظام تسجيل الدخول
-     مشروع: bvo-game
-════════════════════════════════════════════════ -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-  getAuth, GoogleAuthProvider, signInWithPopup, signInWithCredential, signInAnonymously,
-  createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  onAuthStateChanged, signOut
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
-import {
-  getDatabase, ref, set, get, update, onValue, onDisconnect
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBLRkFztPzpyPAPnApn04GMbo-qALE2eOw",
-  authDomain: "bvo-game.firebaseapp.com",
-  projectId: "bvo-game",
-  databaseURL: "https://bvo-game-default-rtdb.asia-southeast1.firebasedatabase.app",
-  storageBucket: "bvo-game.firebasestorage.app",
-  messagingSenderId: "891864750758",
-  appId: "1:891864750758:web:df8125569108305d487267"
-};
-
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getDatabase(app);
-auth.languageCode = "ar";
-const googleProvider = new GoogleAuthProvider();
-
-let emailMode = "login"; // login | signup
-
-/* ===== أزرار الدخول ===== */
-window.bvoGoogleLogin = async () => {
-  const Cap = window.Capacitor;
-  const FA = Cap && Cap.Plugins && Cap.Plugins.FirebaseAuthentication;
-  if (Cap && Cap.isNativePlatform && Cap.isNativePlatform() && FA) {
-    // تطبيق الجوال: دخول Google أصلي (لا يفتح متصفّحاً خارجياً)
-    try {
-      const result = await FA.signInWithGoogle();
-      const idToken = result && result.credential && result.credential.idToken;
-      if (!idToken) { alert('تعذّر الحصول على رمز Google'); return; }
-      const cred = GoogleAuthProvider.credential(idToken);
-      await signInWithCredential(auth, cred);
-    } catch (e) { alert('تعذّر الدخول بـ Google: ' + (e && e.message ? e.message : e)); }
-  } else {
-    // الويب: نافذة منبثقة
-    try { await signInWithPopup(auth, googleProvider); }
-    catch (e) { alert(bvoErr(e.code)); }
-  }
-};
-window.bvoGuestLogin = async () => {
-  try { await signInAnonymously(auth); }
-  catch (e) { alert(bvoErr(e.code)); }
-};
-
-/* ===== نافذة البريد ===== */
-window.bvoOpenEmail = () => {
-  emailMode = "login"; bvoSyncEmailUI();
-  document.getElementById("bvo-email-modal").style.display = "flex";
-};
-window.bvoCloseEmail = () => {
-  document.getElementById("bvo-email-modal").style.display = "none";
-  document.getElementById("bvo-em-msg").textContent = "";
-};
-window.bvoToggleEmailMode = () => {
-  emailMode = (emailMode === "login") ? "signup" : "login";
-  bvoSyncEmailUI();
-};
-function bvoSyncEmailUI() {
-  const isLogin = (emailMode === "login");
-  document.getElementById("bvo-em-title").textContent  = isLogin ? "تسجيل الدخول بالبريد" : "إنشاء حساب جديد";
-  document.getElementById("bvo-em-submit").textContent = isLogin ? "دخول" : "إنشاء حساب";
-  document.getElementById("bvo-em-toggle").textContent = isLogin ? "ليس لديك حساب؟ أنشئ حساباً" : "لديك حساب؟ سجّل الدخول";
-  document.getElementById("bvo-em-msg").textContent = "";
+<!-- ═══ Firebase: الأونلاين + تسجيل الدخول (مشروع bvo-game) ═══ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+/* ربط BVO بـ Firebase — Realtime Database + تسجيل دخول مجهول (Anonymous).
+   كل شيء اختياري وآمن: لو فشل الاتصال (أوفلاين) تعمل اللعبة محلياً كالمعتاد. */
+var FB_READY=false, FB_UID=null, fbAuth=null, fbDB=null;
+/* شارة حالة الاتصال المرئية أعلى الشاشة — بلا حاجة إلى Console (اضغط عليها لإخفائها) */
+function fbBadge(txt,color){
+  try{
+    var b=document.getElementById('fb-badge');
+    if(!b){
+      b=document.createElement('div'); b.id='fb-badge';
+      b.style.cssText='position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:999999;font-family:inherit;font-size:12px;font-weight:900;padding:5px 13px;border-radius:20px;background:rgba(0,0,0,.82);box-shadow:0 2px 12px rgba(0,0,0,.6);cursor:pointer;white-space:nowrap;';
+      b.onclick=function(){ b.style.display='none'; };
+      (document.body||document.documentElement).appendChild(b);
+    }
+    b.textContent=txt; b.style.color=color||'#fff'; b.style.display='block';
+  }catch(e){}
 }
-window.bvoEmailSubmit = async () => {
-  const email = document.getElementById("bvo-em-email").value.trim();
-  const pass  = document.getElementById("bvo-em-pass").value;
-  const msg   = document.getElementById("bvo-em-msg");
-  if (!email || !pass) { msg.textContent = "أدخل البريد وكلمة المرور."; return; }
-  if (pass.length < 6) { msg.textContent = "كلمة المرور 6 أحرف على الأقل."; return; }
-  msg.style.color = "#a78bfa"; msg.textContent = "...جارٍ";
-  try {
-    if (emailMode === "signup") await createUserWithEmailAndPassword(auth, email, pass);
-    else                         await signInWithEmailAndPassword(auth, email, pass);
-    window.bvoCloseEmail();
-  } catch (e) { msg.style.color = "#ff6b6b"; msg.textContent = bvoErr(e.code); }
-};
-
-/* ===== تسجيل الخروج ===== */
-window.bvoLogout = async () => { try { await signOut(auth); } catch (e) {} location.reload(); };
-
-/* ===== مراقبة حالة الدخول (أهم جزء) ===== */
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    window.BVO_IS_GUEST = !!user.isAnonymous;
-    window.BVO_USER = { uid: user.uid, name: user.displayName || "", email: user.email || "", guest: !!user.isAnonymous };
-    // ادخل اللعبة بإعادة استخدام منطق اللعبة الأصلي
-    if (typeof window.doLogin === "function") window.doLogin();
-    else if (typeof window.goTo === "function") window.goTo("s-main");
-    bvoSetupRealtime(user);
-  } else {
-    window.BVO_IS_GUEST = false;
-    window.BVO_USER = null;
-    if (typeof window.goTo === "function") window.goTo("s-login");
-  }
-});
-
-/* ═══ نظام الأصدقاء الحقيقي (Realtime Database) ═══ */
-let MY_UID = null, RT_READY = false;
-async function bvoSetupRealtime(user){
-  MY_UID = user.uid;
-  window.BVO_UID = user.uid;
-  // ═══ حفظ سحابي: حمّل تقدّم هذا الحساب أولاً (كل حساب منفصل عن الآخر) ═══
-  if (!user.isAnonymous) {
-    try {
-      const psnap = await get(ref(db, 'players/' + user.uid));
-      if (psnap.exists()) {
-        if (typeof window.applyCloudPlayer === 'function') window.applyCloudPlayer(psnap.val());
-      } else {
-        if (typeof window.resetCloudPlayer === 'function') window.resetCloudPlayer();
-        const fresh = (typeof window.getPlayerData === 'function') ? window.getPlayerData() : null;
-        if (fresh) { try { await set(ref(db, 'players/' + user.uid), fresh); } catch(e) {} }
-      }
-    } catch(e) { console.warn('cloud load failed', e); }
-  } else {
-    if (typeof window.resetCloudPlayer === 'function') window.resetCloudPlayer(); // ضيف → تقدّم مؤقت
-  }
-  const P = window.PLAYER || {};
-  const myId = (P.id && String(P.id).trim()) ? String(P.id).trim() : user.uid.slice(0, 10);
-  window.BVO_MY_ID = myId;
-  try {
-    await update(ref(db), {
-      ['users/' + user.uid + '/id']: myId,
-      ['users/' + user.uid + '/name']: P.name || 'لاعب',
-      ['users/' + user.uid + '/avatar']: P.avatar || '🦊',
-      ['idIndex/' + myId]: user.uid
-    });
-    const onlineRef = ref(db, 'users/' + user.uid + '/online');
-    onDisconnect(onlineRef).set(false);
-    await set(onlineRef, true);
-  } catch(e) { console.warn('register failed', e); }
-  if (!RT_READY) {
-    RT_READY = true;
-    onValue(ref(db, 'friends/' + user.uid), async (snap) => {
-      const val = snap.val() || {};
-      const arr = [];
-      for (const [fuid, f] of Object.entries(val)) {
-        let online = false;
-        try { const os = await get(ref(db, 'users/' + fuid + '/online')); online = !!os.val(); } catch(e) {}
-        arr.push({ uid: fuid, id: f.id, name: f.name, avatar: f.avatar, online });
-      }
-      window.RT_FRIENDS = arr;
-      if (typeof window.renderFriends === 'function') window.renderFriends();
-    });
-  }
-  const md = document.getElementById('my-id-disp'); if (md) md.textContent = myId;
+(function(){
+  try{
+    fbBadge('🟡 جارٍ الاتصال بالخادم…','#ffd24d');
+    var firebaseConfig={
+      apiKey:"AIzaSyBLRkFztPzpyPAPnApn04GMbo-qALE2eOw",
+      authDomain:"bvo-game.firebaseapp.com",
+      databaseURL:"https://bvo-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId:"bvo-game",
+      storageBucket:"bvo-game.firebasestorage.app",
+      messagingSenderId:"891864750758",
+      appId:"1:891864750758:web:df8125569108305d487267"
+    };
+    firebase.initializeApp(firebaseConfig);
+    fbAuth=firebase.auth();
+    fbDB=firebase.database();
+    fbAuth.onAuthStateChanged(function(user){ if(user) fbOnReady(user); });
+    fbAuth.signInAnonymously().catch(function(e){ console.warn('[BVO] sign-in:', e.code||e); fbBadge('🔴 تعذّر الاتصال — افتح اللعبة من رابط إنترنت','#ff7a7a'); });
+  }catch(e){ console.warn('[BVO] Firebase:', e); fbBadge('🔴 لا يوجد اتصال بالخادم','#ff7a7a'); }
+})();
+/* الملف العلني للاعب (يُقرأه الخصوم في شاشة الانتظار) */
+function fbProfile(){
+  var P=(typeof PLAYER!=='undefined')?PLAYER:{};
+  return { name:P.name||'لاعب', level:P.level||1, avatar:P.avatar||'🦊', gameId:P.id||'', ts:Date.now() };
 }
-
-let BVO_SAVE_T = null;
-window.bvoSaveCloud = function(data){
-  if (!MY_UID || !data || window.BVO_IS_GUEST) return;
-  let snap; try { snap = JSON.parse(JSON.stringify(data)); } catch(e) { return; }
-  clearTimeout(BVO_SAVE_T);
-  BVO_SAVE_T = setTimeout(()=>{ try { set(ref(db, 'players/' + MY_UID), snap); } catch(e) {} }, 600);
-};
-
-window.bvoAddFriend = async (code) => {
-  if (!MY_UID) return { ok: false, msg: 'انتظر لحظة حتى يجهز الاتصال' };
-  code = (code || '').trim();
-  if (!code) return { ok: false, msg: 'أدخل المعرّف' };
-  if (code === window.BVO_MY_ID) return { ok: false, msg: 'لا يمكنك إضافة نفسك 🙂' };
-  try {
-    const idx = await get(ref(db, 'idIndex/' + code));
-    if (!idx.exists()) return { ok: false, msg: 'لا يوجد لاعب بهذا المعرّف' };
-    const fuid = idx.val();
-    if (fuid === MY_UID) return { ok: false, msg: 'هذا معرّفك أنت 🙂' };
-    const us = await get(ref(db, 'users/' + fuid));
-    const u = us.val() || {};
-    const me = window.PLAYER || {};
-    await update(ref(db), {
-      ['friends/' + MY_UID + '/' + fuid]: { id: code, name: u.name || 'لاعب', avatar: u.avatar || '🦊' },
-      ['friends/' + fuid + '/' + MY_UID]: { id: window.BVO_MY_ID, name: me.name || 'لاعب', avatar: me.avatar || '🦊' }
-    });
-    return { ok: true, msg: 'تمت إضافة ' + (u.name || 'صديقك') + ' ✅' };
-  } catch(e) { return { ok: false, msg: 'تعذّر الإضافة: ' + e.message }; }
-};
-
-/* ═══ الغرف / المباراة الخاصة (Realtime Database) ═══ */
-let CUR_ROOM = null, ROOM_UNSUB = null;
-function genRoomCode(){ const ch='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let c=''; for(let i=0;i<5;i++)c+=ch[Math.floor(Math.random()*ch.length)]; return c; }
-function bvoListenRoom(code){
-  if (ROOM_UNSUB) { ROOM_UNSUB(); ROOM_UNSUB=null; }
-  ROOM_UNSUB = onValue(ref(db,'rooms/'+code), (snap)=>{
-    const room = snap.val();
-    if (!room) { window.RT_ROOM=null; if (typeof window.onRoomGone==='function') window.onRoomGone(); return; }
-    room.code = code; window.RT_ROOM = room;
-    if (typeof window.renderRoomLobby==='function') window.renderRoomLobby();
-    if (room.status==='playing' && typeof window.onRoomStart==='function') window.onRoomStart(room.stage);
-  });
-}
-window.bvoCreateRoom = async (stage) => {
-  if (!MY_UID) return { ok:false, msg:'انتظر جهوزية الاتصال' };
-  const P = window.PLAYER || {};
-  let code='';
-  for (let i=0;i<6;i++){ code=genRoomCode(); try { const ex=await get(ref(db,'rooms/'+code)); if(!ex.exists()) break; } catch(e){ break; } }
-  try {
-    await set(ref(db,'rooms/'+code), {
-      host: MY_UID, stage: stage, status:'waiting', createdAt: Date.now(),
-      players: { [MY_UID]: { name:P.name||'لاعب', avatar:P.avatar||'🦊', id:window.BVO_MY_ID, skin:(P.cardSkin||'classic') } }
-    });
-    onDisconnect(ref(db,'rooms/'+code+'/players/'+MY_UID)).remove();
-    CUR_ROOM = code; bvoListenRoom(code);
-    return { ok:true, code };
-  } catch(e) { return { ok:false, msg:e.message }; }
-};
-window.bvoJoinRoom = async (code) => {
-  if (!MY_UID) return { ok:false, msg:'انتظر جهوزية الاتصال' };
-  code = (code||'').trim().toUpperCase();
-  if (code.length<4) return { ok:false, msg:'رمز غير صحيح' };
-  try {
-    const snap = await get(ref(db,'rooms/'+code));
-    if (!snap.exists()) return { ok:false, msg:'لا توجد غرفة بهذا الرمز' };
-    const room = snap.val();
-    if (room.status && room.status!=='waiting') return { ok:false, msg:'المباراة بدأت بالفعل' };
-    const P = window.PLAYER || {};
-    await set(ref(db,'rooms/'+code+'/players/'+MY_UID), { name:P.name||'لاعب', avatar:P.avatar||'🦊', id:window.BVO_MY_ID, skin:(P.cardSkin||'classic') });
-    onDisconnect(ref(db,'rooms/'+code+'/players/'+MY_UID)).remove();
-    CUR_ROOM = code; bvoListenRoom(code);
-    return { ok:true, code, stage:room.stage };
-  } catch(e) { return { ok:false, msg:e.message }; }
-};
-window.bvoStartRoom = async () => {
-  if (!CUR_ROOM) return;
-  try { await update(ref(db,'rooms/'+CUR_ROOM), { status:'playing' }); } catch(e) {}
-};
-window.bvoLeaveRoom = async () => {
-  const code = CUR_ROOM; if (!code) return;
-  try {
-    const hs = await get(ref(db,'rooms/'+code+'/host'));
-    if (hs.val()===MY_UID) await set(ref(db,'rooms/'+code), null);
-    else await set(ref(db,'rooms/'+code+'/players/'+MY_UID), null);
-  } catch(e) {}
-  if (ROOM_UNSUB) { ROOM_UNSUB(); ROOM_UNSUB=null; }
-  CUR_ROOM=null; window.RT_ROOM=null;
-};
-
-window.bvoPushState = (code, str) => { try { set(ref(db,'rooms/'+code+'/state'), str); } catch(e) {} };
-let STATE_UNSUB=null;
-window.bvoListenState = (code, cb) => {
-  if (STATE_UNSUB) { STATE_UNSUB(); STATE_UNSUB=null; }
-  STATE_UNSUB = onValue(ref(db,'rooms/'+code+'/state'), (snap)=>{ cb(snap.val()); });
-};
-
-/* ===== ترجمة الأخطاء للعربية ===== */
-function bvoErr(code) {
-  const m = {
-    "auth/invalid-email": "البريد الإلكتروني غير صحيح.",
-    "auth/email-already-in-use": "هذا البريد مسجّل مسبقاً — سجّل الدخول.",
-    "auth/weak-password": "كلمة المرور ضعيفة (6 أحرف على الأقل).",
-    "auth/user-not-found": "لا يوجد حساب بهذا البريد.",
-    "auth/wrong-password": "كلمة المرور غير صحيحة.",
-    "auth/invalid-credential": "البريد أو كلمة المرور غير صحيحة.",
-    "auth/popup-closed-by-user": "أُغلقت نافذة Google قبل إكمال الدخول.",
-    "auth/popup-blocked": "المتصفح حظر النافذة المنبثقة — اسمح بها وحاول مجدداً.",
-    "auth/network-request-failed": "تحقّق من اتصالك بالإنترنت.",
-    "auth/too-many-requests": "محاولات كثيرة — انتظر قليلاً ثم حاول.",
-    "auth/operation-not-allowed": "طريقة الدخول هذه غير مفعّلة في Firebase."
-  };
-  return m[code] || ("حدث خطأ: " + code);
+function fbOnReady(user){
+  FB_READY=true; FB_UID=user.uid;
+  try{
+    fbDB.ref('users/'+user.uid).update(fbProfile());
+    if(typeof PLAYER!=='undefined' && PLAYER.id){ fbDB.ref('idIndex/'+PLAYER.id).set(user.uid).catch(function(){}); }
+  }catch(e){ console.warn('[BVO] sync:', e); }
+  console.log('[BVO] connected — uid:', user.uid);
+  fbBadge('🟢 متصل بالخادم','#5ee47a');
 }
 </script>
 </body>

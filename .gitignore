@@ -1,6 +1,11 @@
-# Capacitor / build artifacts (لا تُرفع إلى GitHub — مخصّصة لبناء التطبيق محلياً)
+# إعدادات محلية / أدوات لا تُرفع
+.claude/
 node_modules/
-www/
+
+# ملفات نظام التشغيل
+.DS_Store
+Thumbs.db
+desktop.ini
 android/
-package-lock.json
+www/
 .gradle/
