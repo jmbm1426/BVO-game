@@ -974,6 +974,21 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
   <div class="tiers-scroll" id="tiers-scroll"></div>
 </div>
 
+<!-- CUPS WAITING ROOM — 4 لاعبين حقيقيين (بلا بوتات) -->
+<div id="s-cup-wait" class="screen" style="background:radial-gradient(ellipse at 50% 0%,#1c0a3e 0%,#070715 70%);overflow-y:auto;">
+  <div class="cups-head">
+    <button class="cups-back" onclick="leaveCupRoom()">←</button>
+    <div class="cups-title" style="color:#ffd700">🏆 غرفة الكؤوس</div>
+    <div class="cups-bal"><span id="cupw-tier">—</span></div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;padding:0 16px;">
+    <div id="cupw-status" style="color:#ffd24d;font-weight:900;font-size:16px;margin:20px 0 4px;text-align:center">🔎 بانتظار اللاعبين… (0/4)</div>
+    <div style="color:#9d8ad0;font-size:12px;margin-bottom:16px;text-align:center">لا بوتات — لاعبون حقيقيون فقط</div>
+    <div id="cupw-slots" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;max-width:360px;"></div>
+    <button class="lbtn btn-guest" style="max-width:300px;margin-top:24px" onclick="leaveCupRoom()">✖️ إلغاء والخروج</button>
+  </div>
+</div>
+
 <!-- CLASSIC — 5 STAGES -->
 <div id="s-classic" class="screen">
   <div class="cups-head">
@@ -2442,8 +2457,65 @@ function playTier(i){
   const t=TIERS[i];
   if(PLAYER.cups<t.unlock){toast('🔒 هذه المرحلة مقفلة\nتحتاج '+t.unlock.toLocaleString()+' 🏆 لفتحها');return;}
   if(PLAYER.coins<t.ticket){toast('🪙 رصيدك من BVOcoin غير كافٍ\nالتذكرة: '+t.ticket.toLocaleString());return;}
-  PLAYER.coins-=t.ticket;savePlayer();refreshTop();
-  startCupGame(i);
+  if(!(typeof FB_READY!=='undefined'&&FB_READY&&typeof fbDB!=='undefined'&&fbDB&&typeof FB_UID!=='undefined'&&FB_UID)){
+    toast('🌐 طور الكؤوس أونلاين فقط\nسجّل دخولك أولاً (Google أو ضيف)');return;
+  }
+  openCupRoom(i);
+}
+/* ═══ غرفة انتظار الكؤوس — 4 لاعبين حقيقيين عبر Firebase (بلا بوتات) ═══ */
+let CUP_ROOM=null;
+function openCupRoom(i){
+  var me=fbDB.ref('rooms/cups_'+i+'/players/'+FB_UID);
+  CUP_ROOM={tier:i, root:fbDB.ref('rooms/cups_'+i), me:me, started:false, cb:null};
+  me.set({ name:PLAYER.name||'لاعب', avatar:PLAYER.avatar||'🦊', cups:PLAYER.cups||0, ts:firebase.database.ServerValue.TIMESTAMP });
+  try{ me.onDisconnect().remove(); }catch(e){}
+  CUP_ROOM.cb=function(snap){ cupRoomUpdate(snap.val()||{}); };
+  CUP_ROOM.root.child('players').on('value', CUP_ROOM.cb);
+  var tt=document.getElementById('cupw-tier'); if(tt)tt.textContent='المرحلة '+(i+1);
+  goTo('s-cup-wait');
+}
+function cupRoomUpdate(players){
+  if(!CUP_ROOM)return;
+  var arr=Object.keys(players).map(function(uid){ var p=players[uid]||{}; p._uid=uid; return p; });
+  arr.sort(function(a,b){ return (a.ts||0)-(b.ts||0); });
+  var top4=arr.slice(0,4);
+  renderCupRoom(top4, arr.length);
+  var iAmIn=top4.some(function(p){ return p._uid===FB_UID; });
+  if(arr.length>=4 && iAmIn && !CUP_ROOM.started){
+    CUP_ROOM.started=true;
+    var st=document.getElementById('cupw-status'); if(st)st.textContent='✅ اكتملت الغرفة! (اللعب المتزامن قريباً)';
+  }
+}
+function renderCupRoom(top4, total){
+  var st=document.getElementById('cupw-status');
+  if(st && CUP_ROOM && !CUP_ROOM.started) st.textContent='🔎 بانتظار اللاعبين… ('+Math.min(total,4)+'/4)';
+  var box=document.getElementById('cupw-slots'); if(!box)return;
+  var html='';
+  for(var s=0;s<4;s++){
+    var p=top4[s];
+    if(p){
+      var you=(p._uid===FB_UID)?' (أنت)':'';
+      var bc=(p._uid===FB_UID)?'#ffd700':'#7c3aed';
+      html+='<div style="background:rgba(255,255,255,.06);border:1.5px solid '+bc+';border-radius:14px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;min-height:104px;justify-content:center">'
+        +'<div style="font-size:34px">'+(p.avatar||'🦊')+'</div>'
+        +'<div style="font-weight:900;font-size:13px;color:#fff">'+(p.name||'لاعب')+you+'</div>'
+        +'<div style="font-size:11px;color:#ffd700">🏆 '+(Number(p.cups||0).toLocaleString())+'</div></div>';
+    } else {
+      html+='<div style="background:rgba(255,255,255,.03);border:1.5px dashed rgba(157,138,208,.5);border-radius:14px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;min-height:104px;justify-content:center">'
+        +'<div style="font-size:26px;opacity:.6">⏳</div>'
+        +'<div style="font-size:11px;color:#9d8ad0">بانتظار لاعب…</div></div>';
+    }
+  }
+  box.innerHTML=html;
+}
+function leaveCupRoom(){
+  if(CUP_ROOM){
+    try{ CUP_ROOM.root.child('players').off('value', CUP_ROOM.cb); }catch(e){}
+    try{ CUP_ROOM.me.onDisconnect().cancel(); }catch(e){}
+    try{ CUP_ROOM.me.remove(); }catch(e){}
+    CUP_ROOM=null;
+  }
+  goTo('s-cups');
 }
 
 /* ═══════════════════════════════════
