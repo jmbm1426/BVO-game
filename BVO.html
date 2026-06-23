@@ -960,6 +960,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:#fff
       <div class="pf-stat"><div class="pf-sv" id="pf-coins">0</div><div class="pf-sl" data-i18n="stat_coins">🪙 عملات BVO</div></div>
     </div>
     <button class="lbtn btn-email" style="max-width:330px" onclick="editName()" data-i18n="change_name">✏️ تغيير الاسم</button>
+    <button class="lbtn btn-guest" style="max-width:330px" onclick="bvoLogout()">🚪 تسجيل الخروج</button>
   </div>
 </div>
 
@@ -4863,22 +4864,27 @@ var FB_READY=false, FB_UID=null, fbAuth=null, fbDB=null;
 window.bvoGoogleLogin=function(){
   if(!fbAuth){ doLogin(); return; }
   fbAuth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .then(function(){ doLogin(); })
     .catch(function(e){ alert('تعذّر الدخول بـ Google:\n'+((e&&(e.code||e.message))||e)); });
 };
 window.bvoGuestLogin=function(){
   if(!fbAuth){ doLogin(); return; }
-  fbAuth.signInAnonymously().catch(function(){ doLogin(); });
+  fbAuth.signInAnonymously().then(function(){ doLogin(); }).catch(function(){ doLogin(); });
 };
 window.bvoEmailLogin=function(){
   if(!fbAuth){ doLogin(); return; }
   var email=prompt('أدخل بريدك الإلكتروني:'); if(!email) return;
   var pass=prompt('أدخل كلمة المرور (6 أحرف على الأقل):'); if(!pass) return;
-  fbAuth.signInWithEmailAndPassword(email,pass).catch(function(e){
+  fbAuth.signInWithEmailAndPassword(email,pass).then(function(){ doLogin(); }).catch(function(e){
     var c=e&&e.code;
     if(c==='auth/user-not-found'||c==='auth/invalid-credential'||c==='auth/invalid-login-credentials'){
-      fbAuth.createUserWithEmailAndPassword(email,pass).catch(function(e2){ alert('خطأ: '+((e2&&(e2.code||e2.message))||e2)); });
+      fbAuth.createUserWithEmailAndPassword(email,pass).then(function(){ doLogin(); }).catch(function(e2){ alert('خطأ: '+((e2&&(e2.code||e2.message))||e2)); });
     } else { alert('خطأ: '+(c||(e&&e.message)||e)); }
   });
+};
+window.bvoLogout=function(){
+  try{ if(fbAuth) fbAuth.signOut(); }catch(e){}
+  goTo('s-login');
 };
 /* الملف العلني للاعب (يُقرأه الخصوم في شاشة الانتظار) */
 function fbProfile(){
@@ -4892,7 +4898,6 @@ function fbOnReady(user){
     if(typeof PLAYER!=='undefined' && PLAYER.id){ fbDB.ref('idIndex/'+PLAYER.id).set(user.uid).catch(function(){}); }
   }catch(e){ console.warn('[BVO] sync:', e); }
   console.log('[BVO] connected — uid:', user.uid);
-  try{ var ls=document.getElementById('s-login'); if(ls && ls.classList.contains('active')) doLogin(); }catch(e){}
 }
 </script>
 </body>
