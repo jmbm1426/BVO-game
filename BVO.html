@@ -3585,13 +3585,20 @@ function botEnvyBonus(pidx,card){
 }
 /* اختيار الورقة حسب المستوى */
 function botChooseCardIdx(pidx,hand,lvl){
-  if(lvlAtLeast(lvl,'impossible')){
-    let best=0,bs=-1e9;
-    hand.forEach((c,i)=>{let sc=botScoreCard(pidx,c);if(lvl==='envious')sc+=botEnvyBonus(pidx,c);if(sc>bs){bs=sc;best=i;}});
-    return best;
+  const rank=lvlRank(lvl); // 0 مبتدئ · 1 سهل · 2 متوسط · 3 صعب · 4 مستحيل · 5 حسود
+  // مبتدئ: ضعيف جداً — كثيراً ما يلعب أسوأ ورقة
+  if(rank<=0){
+    if(Math.random()<0.45){let w=0,ws=1e9;hand.forEach((c,i)=>{const sc=botScoreCard(pidx,c);if(sc<ws){ws=sc;w=i;}});return w;}
+    return Math.floor(Math.random()*hand.length);
   }
-  if(lvl==='hard')return hand.reduce((b,c,i)=>Math.abs(c.steps||0)>Math.abs(hand[b].steps||0)?i:b,0);
-  return Math.floor(Math.random()*hand.length); // مبتدئ/سهل/متوسط: عشوائي
+  // سهل: عشوائي (يلعب بلا استراتيجية، لكنه لا يتعمّد الأسوأ — يخسر أبطأ من المبتدئ)
+  if(rank===1)return Math.floor(Math.random()*hand.length);
+  // متوسط فأعلى: يختار أفضل ورقة بالتقييم الذكي
+  let best=0,bs=-1e9;
+  hand.forEach((c,i)=>{let sc=botScoreCard(pidx,c);if(lvl==='envious')sc+=botEnvyBonus(pidx,c);if(sc>bs){bs=sc;best=i;}});
+  // متوسط: قويّ لكنه يخطئ أحياناً (فيمكن هزيمته بلعب جيد)
+  if(rank===2&&Math.random()<0.30)return Math.floor(Math.random()*hand.length);
+  return best;
 }
 function botCard(card,pidx){
   const{color:cl,label:lb,steps:st}=card;
@@ -3609,7 +3616,7 @@ function botCard(card,pidx){
   }
   // BLACK
   // كلما ارتفع المستوى زادت احتمالية استخدام التحكّم (مبتدئ/سهل = نادر، مستحيل/حسود = دائماً)
-  const aggr=lvlAtLeast(lvl,'impossible')?1:lvlAtLeast(lvl,'hard')?.8:lvlAtLeast(lvl,'medium')?.5:lvlRank(lvl)===1?.25:0;
+  const aggr=lvlAtLeast(lvl,'impossible')?1:lvlAtLeast(lvl,'hard')?.9:lvlAtLeast(lvl,'medium')?.65:lvlRank(lvl)===1?.25:.08;
   // المرحلة 4: البوت يستهدف عدواً ويحرّكه (يحاول إيقاعه على أرض مملوكة لأحد)
   if(isStage4()){
     const foe=botTargetFoe(pidx,lvl);
@@ -3653,7 +3660,7 @@ function botCard(card,pidx){
 
 /* رسالة الحسود الخاطفة (مرّة كل 6 ثوانٍ كحدّ أقصى حتى لا تتكرّر) */
 let _envyTO=0;
-function coachEnvy(msg){const now=Date.now();if(now-_envyTO<6000)return;_envyTO=now;toast(msg);}
+function coachEnvy(msg){/* رسائل الحسود المنبثقة مُعطّلة بطلب المستخدم — البوت يؤدّي حركته بصمت */}
 function botBuyD(pidx,sq){
   const p=G.players[pidx];if(p.money<sq.price)return false;
   if(SCEN)return !!SCEN._botBuy; // الجولة التعليمية: قرار الشراء مكتوب
