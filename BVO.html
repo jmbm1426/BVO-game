@@ -4842,22 +4842,8 @@ loadLang();loadPlayer();refreshTop();loadCh();parseSessionHash();applyLang();
 /* ربط BVO بـ Firebase — Realtime Database + تسجيل دخول مجهول (Anonymous).
    كل شيء اختياري وآمن: لو فشل الاتصال (أوفلاين) تعمل اللعبة محلياً كالمعتاد. */
 var FB_READY=false, FB_UID=null, fbAuth=null, fbDB=null;
-/* شارة حالة الاتصال المرئية أعلى الشاشة — بلا حاجة إلى Console (اضغط عليها لإخفائها) */
-function fbBadge(txt,color){
-  try{
-    var b=document.getElementById('fb-badge');
-    if(!b){
-      b=document.createElement('div'); b.id='fb-badge';
-      b.style.cssText='position:fixed;top:6px;left:50%;transform:translateX(-50%);z-index:999999;font-family:inherit;font-size:12px;font-weight:900;padding:5px 13px;border-radius:20px;background:rgba(0,0,0,.82);box-shadow:0 2px 12px rgba(0,0,0,.6);cursor:pointer;white-space:nowrap;';
-      b.onclick=function(){ b.style.display='none'; };
-      (document.body||document.documentElement).appendChild(b);
-    }
-    b.textContent=txt; b.style.color=color||'#fff'; b.style.display='block';
-  }catch(e){}
-}
 (function(){
   try{
-    fbBadge('🟡 جارٍ الاتصال بالخادم…','#ffd24d');
     var firebaseConfig={
       apiKey:"AIzaSyBLRkFztPzpyPAPnApn04GMbo-qALE2eOw",
       authDomain:"bvo-game.firebaseapp.com",
@@ -4871,8 +4857,8 @@ function fbBadge(txt,color){
     fbAuth=firebase.auth();
     fbDB=firebase.database();
     fbAuth.onAuthStateChanged(function(user){ if(user) fbOnReady(user); });
-    fbAuth.signInAnonymously().catch(function(e){ console.warn('[BVO] sign-in:', e.code||e); fbBadge('🔴 تعذّر الاتصال — افتح اللعبة من رابط إنترنت','#ff7a7a'); });
-  }catch(e){ console.warn('[BVO] Firebase:', e); fbBadge('🔴 لا يوجد اتصال بالخادم','#ff7a7a'); }
+    fbAuth.signInAnonymously().catch(function(e){ console.warn('[BVO] sign-in:', e.code||e); });
+  }catch(e){ console.warn('[BVO] Firebase:', e); }
 })();
 /* الملف العلني للاعب (يُقرأه الخصوم في شاشة الانتظار) */
 function fbProfile(){
@@ -4886,7 +4872,6 @@ function fbOnReady(user){
     if(typeof PLAYER!=='undefined' && PLAYER.id){ fbDB.ref('idIndex/'+PLAYER.id).set(user.uid).catch(function(){}); }
   }catch(e){ console.warn('[BVO] sync:', e); }
   console.log('[BVO] connected — uid:', user.uid);
-  fbBadge('🟢 متصل بالخادم','#5ee47a');
 }
 </script>
 </body>
