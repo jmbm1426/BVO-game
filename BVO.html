@@ -2369,41 +2369,71 @@ function runAd(seconds,onDone){
 /* إعلان بجائزة (حد أقصى 10 يومياً، 100 عملة) */
 function watchAd(){
   if((CH.ads||0)>=ADS_PER_DAY)return;
-  runAd(5,()=>{
+  var reward=function(){
     CH.ads=(CH.ads||0)+1;saveCh();
     PLAYER.coins+=AD_REWARD;savePlayer();refreshTop();
     renderCh();
     toast('🎉 حصلت على '+AD_REWARD.toLocaleString()+' 🪙 لمشاهدة الإعلان');
-  });
-}
-/* ═══ إعلان AdMob البيني — يعمل داخل تطبيق APK فقط؛ على الويب يُتخطّى بلا إعلان ═══ */
-var ADMOB_INTERSTITIAL_ID='ca-app-pub-3940256099942544/1033173712'; // معرّف اختبار Google — استبدله بمعرّفك عند النشر
-var AD_RUNNING2=false;
-function showAdMobInterstitial(onDone){
-  if(AD_RUNNING2){ onDone&&onDone(); return; }
-  AD_RUNNING2=true;
-  try{ if(typeof stopTick==='function') stopTick(); }catch(e){} // إيقاف اللعبة (pause)
-  var done=function(){
-    AD_RUNNING2=false;
-    try{ var g=document.getElementById('s-bot-game'); if(typeof startTick==='function' && g && g.classList.contains('active')) startTick(); }catch(e){} // استئناف اللعبة
-    onDone&&onDone();
   };
-  try{
-    var Cap=window.Capacitor;
-    if(Cap && Cap.Plugins && Cap.Plugins.AdMob){
-      var A=Cap.Plugins.AdMob;
-      Promise.resolve(A.prepareInterstitial({adId:ADMOB_INTERSTITIAL_ID}))
-        .then(function(){ return A.showInterstitial(); })
-        .then(function(){ done(); })
-        .catch(function(e){ console.warn('[BVO] AdMob:', e); done(); });
-      return;
-    }
-  }catch(e){ console.warn('[BVO] AdMob:', e); }
-  done(); // ويب / لا يوجد AdMob → بلا إعلان
+  if(typeof bvoShowRewarded==='function' && bvoGetAdMob() && BVO_adReady){ bvoShowRewarded(reward); return; } // تطبيق: AdMob حقيقي
+  runAd(5, reward); // ويب: إعلان تجريبي
 }
-/* بعد كل مباراة: أوقف اللعبة ← إعلان AdMob ← استئناف */
+/* ═══ AdMob — إعلانات حقيقية (داخل تطبيق APK فقط؛ على الويب تُتخطّى) ═══ */
+const BVO_AD_TEST = true; // ⚠️ غيّرها إلى false عند النشر النهائي على المتجر
+const BVO_AD_INTERSTITIAL = 'ca-app-pub-3297139691503804/4990078151';
+const BVO_AD_REWARDED     = 'ca-app-pub-3297139691503804/4798506465';
+let BVO_AdMob = null, BVO_adReady = false, BVO_rewardFlag = false, BVO_intLoaded = false;
+function bvoGetAdMob(){
+  try{ var C=window.Capacitor; if(C && C.isNativePlatform && C.isNativePlatform() && C.Plugins && C.Plugins.AdMob) return C.Plugins.AdMob; }catch(e){}
+  return null;
+}
+async function bvoInitAdMob(){
+  BVO_AdMob = bvoGetAdMob(); if(!BVO_AdMob) return;
+  try{
+    await BVO_AdMob.initialize({});
+    try{ await BVO_AdMob.addListener('onRewardedVideoAdReward', function(){ BVO_rewardFlag=true; }); }catch(e){}
+    try{ await BVO_AdMob.addListener('rewarded', function(){ BVO_rewardFlag=true; }); }catch(e){}
+    BVO_adReady = true; bvoPreloadInterstitial();
+  }catch(e){ BVO_AdMob=null; }
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', function(){ setTimeout(bvoInitAdMob,800); });
+else setTimeout(bvoInitAdMob,800);
+function bvoInMatch(){ var bg=document.getElementById('s-bot-game'); return !!(bg && bg.classList.contains('active')); }
+function bvoPauseGame(){ try{ if(typeof stopTick==='function') stopTick(); if(typeof G!=='undefined' && G && G.botTO) clearTimeout(G.botTO); }catch(e){} }
+function bvoResumeGame(){ try{ var el=document.getElementById('s-bot-game'); if(el && el.classList.contains('active') && typeof G!=='undefined' && G && G.gameStart){ if(typeof startTick==='function') startTick(); if(G.players && G.players[G.turn] && G.players[G.turn].isBot && typeof scheduleBot==='function') scheduleBot(); } }catch(e){} }
+async function bvoPreloadInterstitial(){
+  if(!BVO_AdMob || !BVO_adReady) return;
+  try{ await BVO_AdMob.prepareInterstitial({ adId:BVO_AD_INTERSTITIAL, isTesting:BVO_AD_TEST }); BVO_intLoaded=true; }catch(e){ BVO_intLoaded=false; }
+}
+async function bvoShowInterstitial(onDone){
+  if(!BVO_AdMob || !BVO_adReady){ if(onDone)onDone(); return false; }
+  if(bvoInMatch()){ if(onDone)onDone(); return false; }
+  bvoPauseGame();
+  try{
+    if(!BVO_intLoaded){ await BVO_AdMob.prepareInterstitial({ adId:BVO_AD_INTERSTITIAL, isTesting:BVO_AD_TEST }); }
+    if(bvoInMatch()){ BVO_intLoaded=true; if(onDone)onDone(); return false; }
+    await BVO_AdMob.showInterstitial();
+  }catch(e){}
+  BVO_intLoaded=false; bvoPreloadInterstitial();
+  bvoResumeGame();
+  if(onDone)onDone();
+  return true;
+}
+async function bvoShowRewarded(onReward){
+  if(!BVO_AdMob || !BVO_adReady){ return false; }
+  BVO_rewardFlag=false; bvoPauseGame();
+  try{
+    await BVO_AdMob.prepareRewardVideoAd({ adId:BVO_AD_REWARDED, isTesting:BVO_AD_TEST });
+    var res = await BVO_AdMob.showRewardVideoAd();
+    if(res && (res.amount!==undefined || res.type!==undefined || res.rewardItem!==undefined)) BVO_rewardFlag=true;
+  }catch(e){}
+  bvoResumeGame();
+  if(BVO_rewardFlag && onReward) onReward();
+  return true;
+}
+/* بعد كل مباراة: إعلان بيني (يُتخطّى أثناء المباراة وعلى الويب) */
 function maybeInterstitial(gameMs){
-  setTimeout(function(){ showAdMobInterstitial(function(){}); }, 600);
+  setTimeout(function(){ if(typeof bvoShowInterstitial==='function') bvoShowInterstitial(function(){}); }, 800);
 }
 
 /* ═══════════════════════════════════
