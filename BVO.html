@@ -1354,7 +1354,7 @@ function openBotSetup(){renderQuickLevels();renderBotLevels();goTo('s-bot-setup'
 /* ═══════════════════════════════════
    PLAYER WALLET (BVOcoin + الكؤوس) — يُحفظ
 ═══════════════════════════════════ */
-let PLAYER={coins:100000000,cups:5000,gems:0,cardSkin:'classic',ownedSkins:['classic'],name:'',id:'',level:1,xp:0,bestStreak:0,streak:0,wins:0,avatar:'🦊',friends:[]};
+let PLAYER={coins:850,cups:0,gems:5,cardSkin:'classic',ownedSkins:['classic'],name:'',id:'',level:1,xp:0,bestStreak:0,streak:0,wins:0,avatar:'🦊',friends:[]};
 /* نظام اللِفِل: XP اللازم للوصول لمستوى معيّن */
 function xpForLevel(lv){return lv*100;} // المستوى 2 يحتاج 100، 3 يحتاج 200... تراكمياً
 function levelProgress(){
@@ -1370,9 +1370,9 @@ function addXP(n){
 function genId(){let s='';for(let i=0;i<10;i++)s+=Math.floor(Math.random()*10);return s;}
 const AVATARS=['🦊','🐱','🐼','🦁','🐯','🐸','🐵','🐧','🦄','🐲','🦅','🐺'];
 function loadPlayer(){try{const s=JSON.parse(localStorage.getItem('bvo_player'));if(s){
-  PLAYER.coins=(typeof s.coins==='number')?s.coins:100000000;
-  PLAYER.cups=(typeof s.cups==='number')?s.cups:5000;
-  PLAYER.gems=(typeof s.gems==='number')?s.gems:0;
+  PLAYER.coins=(typeof s.coins==='number')?s.coins:850;
+  PLAYER.cups=(typeof s.cups==='number')?s.cups:0;
+  PLAYER.gems=(typeof s.gems==='number')?s.gems:5;
   PLAYER.cardSkin=s.cardSkin||'classic';
   PLAYER.ownedSkins=Array.isArray(s.ownedSkins)?s.ownedSkins:['classic'];
   PLAYER.name=s.name||''; PLAYER.id=s.id||''; PLAYER.level=s.level||1; PLAYER.xp=s.xp||0;
@@ -1382,11 +1382,7 @@ function loadPlayer(){try{const s=JSON.parse(localStorage.getItem('bvo_player'))
   PLAYER.loans=(s.loans&&typeof s.loans==='object')?s.loans:{};
   PLAYER.loanClaim=(s.loanClaim&&typeof s.loanClaim==='object')?s.loanClaim:{};
 }}catch(e){}
-  // منحة معاينة: 5000 كأس + 100 مليون عملة
-  if(PLAYER.cups<5000)PLAYER.cups=5000;
-  if(PLAYER.coins<100000000)PLAYER.coins=100000000;
-  // منحة 10,000 جوهرة لتجربة المتجر (مرّة واحدة)
-  if(!PLAYER._gemGrant){PLAYER.gems=(PLAYER.gems||0)+10000;PLAYER._gemGrant=true;}
+  // اللاعب الجديد يبدأ بـ: 0 كؤوس · 850 عملة · 5 جواهر (أُزيلت المنح التجريبية)
   // إعادة ضبط (مرّة واحدة): إزالة كل البطاقات عدا الكلاسيكية
   if(!PLAYER._cardReset){PLAYER.ownedSkins=['classic'];PLAYER.cardSkin='classic';PLAYER.loans={};PLAYER._cardReset=true;}
   // البطاقة الكلاسيكية مملوكة دائماً من البداية
@@ -2380,14 +2376,34 @@ function watchAd(){
     toast('🎉 حصلت على '+AD_REWARD.toLocaleString()+' 🪙 لمشاهدة الإعلان');
   });
 }
-/* إعلان بيني داخل اللعب — بعد كل جلستين، أو بعد جلسة واحدة استغرقت أكثر من 10 دقائق */
+/* ═══ إعلان AdMob البيني — يعمل داخل تطبيق APK فقط؛ على الويب يُتخطّى بلا إعلان ═══ */
+var ADMOB_INTERSTITIAL_ID='ca-app-pub-3940256099942544/1033173712'; // معرّف اختبار Google — استبدله بمعرّفك عند النشر
+var AD_RUNNING2=false;
+function showAdMobInterstitial(onDone){
+  if(AD_RUNNING2){ onDone&&onDone(); return; }
+  AD_RUNNING2=true;
+  try{ if(typeof stopTick==='function') stopTick(); }catch(e){} // إيقاف اللعبة (pause)
+  var done=function(){
+    AD_RUNNING2=false;
+    try{ var g=document.getElementById('s-bot-game'); if(typeof startTick==='function' && g && g.classList.contains('active')) startTick(); }catch(e){} // استئناف اللعبة
+    onDone&&onDone();
+  };
+  try{
+    var Cap=window.Capacitor;
+    if(Cap && Cap.Plugins && Cap.Plugins.AdMob){
+      var A=Cap.Plugins.AdMob;
+      Promise.resolve(A.prepareInterstitial({adId:ADMOB_INTERSTITIAL_ID}))
+        .then(function(){ return A.showInterstitial(); })
+        .then(function(){ done(); })
+        .catch(function(e){ console.warn('[BVO] AdMob:', e); done(); });
+      return;
+    }
+  }catch(e){ console.warn('[BVO] AdMob:', e); }
+  done(); // ويب / لا يوجد AdMob → بلا إعلان
+}
+/* بعد كل مباراة: أوقف اللعبة ← إعلان AdMob ← استئناف */
 function maybeInterstitial(gameMs){
-  CH.gamesSinceAd=(CH.gamesSinceAd||0)+1;
-  const longGame=gameMs>=10*60*1000; // 10 دقائق
-  if(CH.gamesSinceAd>=2||longGame){
-    CH.gamesSinceAd=0;saveCh();
-    setTimeout(()=>runAd(5,()=>{}),700); // إعلان بلا جائزة
-  } else { saveCh(); }
+  setTimeout(function(){ showAdMobInterstitial(function(){}); }, 600);
 }
 
 /* ═══════════════════════════════════
@@ -5117,7 +5133,7 @@ function fbOnReady(user){
       } else {
         PLAYER.id=genId(); PLAYER.name='لاعب '+PLAYER.id.slice(0,4);
         PLAYER.level=1; PLAYER.xp=0; PLAYER.wins=0; PLAYER.streak=0; PLAYER.bestStreak=0;
-        PLAYER.cups=5000; PLAYER.coins=100000000; PLAYER.gems=10000;
+        PLAYER.cups=0; PLAYER.coins=850; PLAYER.gems=5;
         PLAYER.ownedSkins=['classic']; PLAYER.cardSkin='classic'; PLAYER.loans={}; PLAYER.friends=[];
         fbSaveCloud();
         console.log('[BVO] حساب جديد — ملف مستقل');
