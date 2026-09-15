@@ -12,7 +12,9 @@
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report",
     "mcp": "node scripts/playwright-mcp.js",
-    "setup:browsers": "playwright install chromium"
+    "setup:browsers": "playwright install chromium",
+    "screenshot": "node scripts/screenshot.js",
+    "mcp:install-desktop": "node scripts/install-desktop-mcp.js"
   },
   "dependencies": {
     "@capacitor-community/admob": "^8.0.0",

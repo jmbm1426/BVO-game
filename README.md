@@ -34,7 +34,14 @@ npm start                # http://localhost:4173/
 npm test                 # اختبارات Playwright
 ```
 
-التفاصيل، وطريقة ربط `Claude` بالمتصفح عبر `Playwright MCP`، في [`TESTING.md`](TESTING.md).
+ولربط `Playwright` بتطبيق `Claude` على الحاسب (لاستعماله مع `Cowork`):
+
+```bash
+npm run mcp:install-desktop
+```
+
+التفاصيل الكاملة — الاختبارات، اللقطات، وربط `Claude Code` وتطبيق `Claude`
+بالمتصفح — في [`TESTING.md`](TESTING.md).
 
 ## عند تعديل اللعبة لاحقاً
 
