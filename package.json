@@ -5,7 +5,14 @@
   "description": "BVO game - Android wrapper (Capacitor)",
   "scripts": {
     "prepare-web": "node copyweb.js",
-    "sync": "node copyweb.js && npx cap sync"
+    "sync": "node copyweb.js && npx cap sync",
+    "start": "node scripts/serve.js",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "mcp": "node scripts/playwright-mcp.js",
+    "setup:browsers": "playwright install chromium"
   },
   "dependencies": {
     "@capacitor-community/admob": "^8.0.0",
@@ -14,5 +21,9 @@
     "@capacitor/cli": "^8.4.0",
     "@capacitor/core": "^8.4.0",
     "firebase": "^12.15.0"
+  },
+  "devDependencies": {
+    "@playwright/mcp": "^0.0.81",
+    "@playwright/test": "^1.63.0"
   }
 }

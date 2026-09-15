@@ -25,6 +25,17 @@
    `https://USERNAME.github.io/cardopoly/`
    (استبدل `USERNAME` باسم حسابك).
 
+## التطوير والاختبار
+
+```bash
+npm install
+npm run setup:browsers   # متصفح Playwright (مرّة واحدة)
+npm start                # http://localhost:4173/
+npm test                 # اختبارات Playwright
+```
+
+التفاصيل، وطريقة ربط `Claude` بالمتصفح عبر `Playwright MCP`، في [`TESTING.md`](TESTING.md).
+
 ## عند تعديل اللعبة لاحقاً
 
 - عدّل `BVO.html` ثم ارفعه مرة أخرى عبر **Add file → Upload files** (سيستبدل القديم).

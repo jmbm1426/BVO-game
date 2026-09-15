@@ -10,3 +10,9 @@ android/
 www/
 .gradle/
 .idea/
+
+# مخرجات اختبارات Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
